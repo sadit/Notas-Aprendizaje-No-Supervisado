@@ -312,7 +312,7 @@ window.Quarto = {
 <li>K-Means: Intenta dividir los datos en un número <span class="math inline">\(k\)</span> predefinido de clústeres, asignando cada punto al centroide del clúster más cercano.</li>
 <li>DBSCAN (Density-Based Spatial Clustering of Applications with Noise): Agrupa puntos que están densamente conectados, siendo muy bueno para encontrar clústeres de formas arbitrarias y detectar ruido.</li>
 </ul>
-<p>A continuación, se describen algunos algoritmos de clustering.</p>
+<p>El resto del documento describe algunos algoritmos de clustering y se prueban de manera práctica.</p>
 <section id="k-means-y-variantes" class="level3">
 <h3 class="anchored" data-anchor-id="k-means-y-variantes">K-Means (y variantes)</h3>
 <p>Es un algoritmo de clustering que busca particionar la base de datos y minimizar la suma de cuadrados de las distancias entre cada punto y el centroide de su clúster asignado. Asume grupos de forma esférica y tamaño similar.</p>
@@ -325,7 +325,7 @@ window.Quarto = {
 </ol>
 <p>Es rápido y escalable para grandes datasets, fácil de implementar y entender. Sin embargo, se debe tener en cuenta que es sensible a la inicialización de los centroides, requiere que <span class="math inline">\(k\)</span> sea preespecificado, no maneja bien clústeres de formas no esféricas o densidades variables, y es sensible a outliers.</p>
 <p>Ejemplo:</p>
-<div id="92ecc480" class="cell" data-execution_count="1">
+<div id="46dbbcdc" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
@@ -343,19 +343,19 @@ window.Quarto = {
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>df_kmeans[<span class="st">'age'</span>].fillna(df_kmeans[<span class="st">'age'</span>].median(), inplace<span class="op">=</span><span class="va">True</span>) <span class="co"># imputación de datos (recordar secciones previas)</span></span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>K-means es sensible a la escala, por lo que nos aseguramos de normalizar</p>
-<div id="0b4ac1a1" class="cell" data-execution_count="2">
+<div id="11ca8dfc" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(df_kmeans)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Ahora, aplicamos K-Means con 2 clusters</p>
-<div id="95ffec68" class="cell" data-execution_count="3">
+<div id="bf8e39c2" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>n_clusters <span class="op">=</span> <span class="dv">2</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>kmeans <span class="op">=</span> KMeans(n_clusters<span class="op">=</span>n_clusters, random_state<span class="op">=</span><span class="dv">42</span>, n_init<span class="op">=</span><span class="dv">10</span>)</span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>kmeans.fit(scaled_features)</span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>cluster_labels <span class="op">=</span> kmeans.labels_ <span class="co"># Etiquetas de clúster generadas por K-Means</span></span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Ahora calculamos las medidas de desempeño</p>
-<div id="ffdf5b94" class="cell" data-execution_count="4">
+<div id="c5d42355" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>sil <span class="op">=</span> silhouette_score(scaled_features, cluster_labels)</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>ari_score <span class="op">=</span> adjusted_rand_score(true_labels, cluster_labels)</span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -368,7 +368,7 @@ window.Quarto = {
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="ss">| coeficiente de silueta | </span><span class="sc">{</span>sil<span class="sc">:.3f}</span><span class="ss"> |</span></span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ss">| adjusted rand index    | </span><span class="sc">{</span>ari_score<span class="sc">:.3f}</span><span class="ss"> |</span></span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="25">
+<div class="cell-output cell-output-display cell-output-markdown" data-execution_count="4">
 <p>Particiones: [643, 248]</p>
 <table class="caption-top table table-sm table-striped small">
 <thead>
@@ -390,6 +390,95 @@ window.Quarto = {
 </table>
 </div>
 </div>
+<section id="visualización" class="level4">
+<h4 class="anchored" data-anchor-id="visualización">Visualización</h4>
+<div id="70d281eb" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>).fit_transform(scaled_features)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>df_pca <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Añadir la columna de supervivencia para la visualización</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>df_pca[<span class="st">'survived'</span>] <span class="op">=</span> df_titanic[<span class="st">'survived'</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>df_pca[<span class="st">'cluster_labels'</span>] <span class="op">=</span> cluster_labels</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-fig-caption="Visualización 2D del agrupamiento" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>plt.subplots(<span class="dv">211</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_pca,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'cluster_labels'</span>, </span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Sobrevivió (clusters)'</span>, labels<span class="op">=</span>[<span class="st">'No'</span>, <span class="st">'Sí'</span>])</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>plt.subplots(<span class="dv">212</span>)</span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_pca,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'survived'</span>, </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Sobrevivió (true labels)'</span>, labels<span class="op">=</span>[<span class="st">'No'</span>, <span class="st">'Sí'</span>])</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div id="fig-clustering" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-fig-caption="Visualización 2D del agrupamiento" data-execution_count="6">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-clustering-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div id="fig-clustering-1" class="cell-output cell-output-display quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-clustering-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<pre id="fig-clustering-1" class="cell-output cell-output-display"><code>&lt;Figure size 960x768 with 0 Axes&gt;</code></pre>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-clustering-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a)
+</figcaption>
+</figure>
+</div>
+<div class="cell-output cell-output-display">
+<div id="fig-clustering-2" class="quarto-float quarto-figure quarto-figure-center anchored" height="462" width="587">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-clustering-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="clustering_files/figure-html/fig-clustering-output-2.png" id="fig-clustering-2" data-ref-parent="fig-clustering" width="587" height="462" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-clustering-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div id="fig-clustering-3" class="quarto-float quarto-figure quarto-figure-center anchored" height="462" width="587">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-clustering-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="clustering_files/figure-html/fig-clustering-output-3.png" id="fig-clustering-3" data-ref-parent="fig-clustering" width="587" height="462" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-clustering-3-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(c)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-clustering-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;1
+</figcaption>
+</figure>
+</div>
+</div>
+</section>
+<section id="actividades" class="level4">
+<h4 class="anchored" data-anchor-id="actividades">Actividades</h4>
+<ul>
+<li>Replicar el ejercicio cambiando a la base de datos de <code>digits</code> y visualización con UMAP.</li>
+</ul>
+</section>
 </section>
 <section id="dbscan-density-based-spatial-clustering-of-applications-with-noise" class="level3">
 <h3 class="anchored" data-anchor-id="dbscan-density-based-spatial-clustering-of-applications-with-noise">DBSCAN (Density-Based Spatial Clustering of Applications with Noise)</h3>
@@ -891,132 +980,286 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
   }
 });
 </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Ejecutar el código</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
-<div class="sourceCode" id="cb5" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Agrupamiento"</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> html</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>Los algoritmos de clustering (o agrupamiento) son una clase fundamental de técnicas de aprendizaje no supervisado en el campo del Machine Learning y la Ciencia de Datos. Su propósito principal es organizar un conjunto de datos en grupos de manera que los elementos dentro de un mismo grupo sean más similares entre sí que con respecto a los elementos de otros grupos.</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="fu">### ¿Para qué sirven?</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>Los algoritmos de clustering son herramientas poderosas para descubrir patrones y para estructurar datos sin etiquetas. Algunas de sus aplicaciones posibles:</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Análisis exploratorio de datos (EDA).</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Detección de valores atípicos (outliers).</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Organización y resumen de información.</span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Compresión de datos.</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a><span class="fu">### Medidas de la calidad de agrupamiento</span></span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>Existen muchas medidas de desempeño para clustering, solo en la versión estable de _sklearn_ se listan 9 <span class="ot">&lt;https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation&gt;</span>. Cada una de ellas se ajusta a las diferentes necesidades del problema. En este curso nos enfocaremos en dos:</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>El _coeficiente de silueta_ es una medida interna, lo que significa que no requiere conocer las etiquetas verdaderas de los datos, sino que se basa únicamente en la estructura inherente de los clústeres formados por el algoritmo. Mide qué tan similar es un objeto (punto de datos) a su propio clúster en comparación con otros clústeres. Para cada punto de datos, calcula una puntuación que indica la cohesión del punto dentro de su clúster y la separación de ese punto con respecto a los clústeres vecinos. El coeficiente de silueta global para todo el agrupamiento es el promedio de los coeficientes de silueta de todos los puntos de datos del conjunto. Ver @wiki-silhouette-coefficient para más detalles.</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Varia entre -1 y 1</span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Un coeficiente de silueta cercano a 1 sugiere que los clustering es denso y bien separado.</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Un coeficiente de silueta cercano a -1 sugiere que los grupos están superpuestos, son muy densos o que la asignación no es buena.</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>En el paquete <span class="in">`sklearn`</span> lo podemos encontrar en <span class="in">`sklearn.metrics`</span> función silhouette_score.</span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>El _Índice de rand ajustado (Adjusted Rand Index - ARI)_ es una métrica que requiere las etiquetas de clase verdaderas o de referencia (ground truth). El ARI cuantifica el grado de concordancia entre las etiquetas de clúster generadas por un algoritmo de agrupamiento y las etiquetas de clase preexistentes de los datos. Ver @wiki-adjusted-rand-index para más detalles.</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Varia entre 0 y 1.</span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Valores cercanos a 0 van por una distribución aleatoria entre las partición predicha y la verdadera.</span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Valores cercanos a 1 van indican la concordancia entre las partición predicha y la verdadera.</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>En el paquete <span class="in">`sklearn`</span> lo podemos encontrar en <span class="in">`sklearn.metrics`</span> función <span class="in">`adjusted_rand_score`</span>.</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a><span class="fu">## El problema de agrupamiento</span></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>Los algoritmos de clustering buscan una partición $C = <span class="sc">\{</span>C_1, C_2, ..., C_k<span class="sc">\}</span>$ de un conjunto de datos $X = <span class="sc">\{</span>x_1, x_2, ..., x_n<span class="sc">\}</span>$, donde $x_i \in \mathbb{R}^d$, tal que los puntos dentro de cada clúster $C_j$ son _similares_ y los puntos de diferentes clústeres son _disímiles_. La noción de similitud se define mediante una métrica de distancia (e.g., Euclidiana, Manhattan, Mahalanobis) o una función de similitud (e.g., similitud coseno). Algunos ejemplos prototipicos son los siguientes:</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>K-Means: Intenta dividir los datos en un número $k$ predefinido de clústeres, asignando cada punto al centroide del clúster más cercano.</span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>DBSCAN (Density-Based Spatial Clustering of Applications with Noise): Agrupa puntos que están densamente conectados, siendo muy bueno para encontrar clústeres de formas arbitrarias y detectar ruido.</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>A continuación, se describen algunos algoritmos de clustering.</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="fu">### K-Means (y variantes)</span></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>Es un algoritmo de clustering que busca particionar la base de datos y minimizar la suma de cuadrados de las distancias entre cada punto y el centroide de su clúster asignado. Asume grupos de forma esférica y tamaño similar.</span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>Basado en el algoritmo de Expectation-Maximization - EM o, algoritmo de Lloyd @wiki-Lloyd:</span>
-<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Inicialización: Se seleccionan $k$ centroides iniciales aleatoriamente de los puntos de datos o mediante estrategias más sofisticadas, e.g., K-Means++ o k-centers.</span>
-<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Asignación a centroides cercanos (expectation): Cada punto de datos $x_i$ se asigna al clúster cuyo centroide $\mu_j$ es el más cercano, según la métrica de distancia seleccionada (comúnmente Euclidiana). La asignación se basa en la función de costo:</span>
-<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>    $$J = \sum_{j=1}^{k} \sum_{x_i \in C_j} \|x_i - \mu_j\|^2$$</span>
-<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Actualización de centros (maximization): Los centroides de cada clúster se recalculan como la media de todos los puntos asignados a ese clúster:</span>
-<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>    $$\mu_j = \frac{1}{|C_j|} \sum_{x_i \in C_j} x_i$$</span>
-<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Convergencia: Los pasos 2 y 3 se repiten iterativamente hasta que la asignación de clústeres ya no cambia, la suma de cuadrados de las distancias se minimiza, o se alcanza un número máximo de iteraciones.</span>
-<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>Es rápido y escalable para grandes datasets, fácil de implementar y entender. Sin embargo, se debe tener en cuenta que es sensible a la inicialización de los centroides, requiere que $k$ sea preespecificado, no maneja bien clústeres de formas no esféricas o densidades variables, y es sensible a outliers.</span>
-<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>Ejemplo:</span>
-<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
-<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
-<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb5-72"><a href="#cb5-72" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
-<span id="cb5-73"><a href="#cb5-73" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> silhouette_score, adjusted_rand_score</span>
-<span id="cb5-74"><a href="#cb5-74" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
-<span id="cb5-75"><a href="#cb5-75" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-76"><a href="#cb5-76" aria-hidden="true" tabindex="-1"></a>df_titanic <span class="op">=</span> sns.load_dataset(<span class="st">'titanic'</span>)</span>
-<span id="cb5-77"><a href="#cb5-77" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">'pclass'</span>, <span class="st">'age'</span>, <span class="st">'sibsp'</span>, <span class="st">'parch'</span>, <span class="st">'fare'</span>]</span>
-<span id="cb5-78"><a href="#cb5-78" aria-hidden="true" tabindex="-1"></a>df_kmeans <span class="op">=</span> df_titanic[features].copy()</span>
-<span id="cb5-79"><a href="#cb5-79" aria-hidden="true" tabindex="-1"></a>true_labels <span class="op">=</span> df_titanic[<span class="st">'survived'</span>] <span class="co"># Estas son nuestras "etiquetas verdaderas" para el ARI</span></span>
-<span id="cb5-80"><a href="#cb5-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-81"><a href="#cb5-81" aria-hidden="true" tabindex="-1"></a>df_kmeans[<span class="st">'age'</span>].fillna(df_kmeans[<span class="st">'age'</span>].median(), inplace<span class="op">=</span><span class="va">True</span>) <span class="co"># imputación de datos (recordar secciones previas)</span></span>
-<span id="cb5-82"><a href="#cb5-82" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb5-83"><a href="#cb5-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-84"><a href="#cb5-84" aria-hidden="true" tabindex="-1"></a>K-means es sensible a la escala, por lo que nos aseguramos de normalizar</span>
-<span id="cb5-87"><a href="#cb5-87" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb5-88"><a href="#cb5-88" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
-<span id="cb5-89"><a href="#cb5-89" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(df_kmeans)</span>
-<span id="cb5-90"><a href="#cb5-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb5-91"><a href="#cb5-91" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-92"><a href="#cb5-92" aria-hidden="true" tabindex="-1"></a>Ahora, aplicamos K-Means con 2 clusters</span>
-<span id="cb5-95"><a href="#cb5-95" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb5-96"><a href="#cb5-96" aria-hidden="true" tabindex="-1"></a>n_clusters <span class="op">=</span> <span class="dv">2</span></span>
-<span id="cb5-97"><a href="#cb5-97" aria-hidden="true" tabindex="-1"></a>kmeans <span class="op">=</span> KMeans(n_clusters<span class="op">=</span>n_clusters, random_state<span class="op">=</span><span class="dv">42</span>, n_init<span class="op">=</span><span class="dv">10</span>)</span>
-<span id="cb5-98"><a href="#cb5-98" aria-hidden="true" tabindex="-1"></a>kmeans.fit(scaled_features)</span>
-<span id="cb5-99"><a href="#cb5-99" aria-hidden="true" tabindex="-1"></a>cluster_labels <span class="op">=</span> kmeans.labels_ <span class="co"># Etiquetas de clúster generadas por K-Means</span></span>
-<span id="cb5-100"><a href="#cb5-100" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb5-101"><a href="#cb5-101" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-102"><a href="#cb5-102" aria-hidden="true" tabindex="-1"></a>Ahora calculamos las medidas de desempeño</span>
-<span id="cb5-105"><a href="#cb5-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb5-106"><a href="#cb5-106" aria-hidden="true" tabindex="-1"></a>sil <span class="op">=</span> silhouette_score(scaled_features, cluster_labels)</span>
-<span id="cb5-107"><a href="#cb5-107" aria-hidden="true" tabindex="-1"></a>ari_score <span class="op">=</span> adjusted_rand_score(true_labels, cluster_labels)</span>
-<span id="cb5-108"><a href="#cb5-108" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-109"><a href="#cb5-109" aria-hidden="true" tabindex="-1"></a>Markdown(<span class="ss">f"""</span></span>
-<span id="cb5-110"><a href="#cb5-110" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-111"><a href="#cb5-111" aria-hidden="true" tabindex="-1"></a><span class="ss">Particiones: </span><span class="sc">{</span>pd<span class="sc">.</span>Series(cluster_labels)<span class="sc">.</span>value_counts()<span class="sc">.</span>tolist()<span class="sc">}</span></span>
-<span id="cb5-112"><a href="#cb5-112" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-113"><a href="#cb5-113" aria-hidden="true" tabindex="-1"></a><span class="ss">| nombre  |  valor  |</span></span>
-<span id="cb5-114"><a href="#cb5-114" aria-hidden="true" tabindex="-1"></a><span class="ss">|---------|---------|</span></span>
-<span id="cb5-115"><a href="#cb5-115" aria-hidden="true" tabindex="-1"></a><span class="ss">| coeficiente de silueta | </span><span class="sc">{</span>sil<span class="sc">:.3f}</span><span class="ss"> |</span></span>
-<span id="cb5-116"><a href="#cb5-116" aria-hidden="true" tabindex="-1"></a><span class="ss">| adjusted rand index    | </span><span class="sc">{</span>ari_score<span class="sc">:.3f}</span><span class="ss"> |</span></span>
-<span id="cb5-117"><a href="#cb5-117" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span>)</span>
-<span id="cb5-118"><a href="#cb5-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-119"><a href="#cb5-119" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb5-120"><a href="#cb5-120" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-121"><a href="#cb5-121" aria-hidden="true" tabindex="-1"></a><span class="fu">### DBSCAN (Density-Based Spatial Clustering of Applications with Noise)</span></span>
-<span id="cb5-122"><a href="#cb5-122" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-123"><a href="#cb5-123" aria-hidden="true" tabindex="-1"></a>Identifica clústeres como regiones densas de puntos en el espacio de datos, separadas por regiones de menor densidad. Es capaz de descubrir clústeres de formas arbitrarias y es robusto al ruido (outliers).</span>
-<span id="cb5-124"><a href="#cb5-124" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-125"><a href="#cb5-125" aria-hidden="true" tabindex="-1"></a>Se requieren una serie de hiperpárametros y conceptos para su explicación. Sea $\epsilon$ el radio máximo para considerar dos puntos como vecinos. _MinPts_ el número mínimo de puntos requeridos para formar una región densa. </span>
-<span id="cb5-126"><a href="#cb5-126" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-127"><a href="#cb5-127" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Se selecciona un punto de datos aleatorio que no ha sido visitado.</span>
-<span id="cb5-128"><a href="#cb5-128" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Se recuperan todos sus vecinos dentro de $\epsilon$.</span>
-<span id="cb5-129"><a href="#cb5-129" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Si el número de vecinos es menor que _MinPts_, el punto se etiqueta como ruido (potencialmente, hasta que un punto central lo alcance).</span>
-<span id="cb5-130"><a href="#cb5-130" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Si el número de vecinos es mayor o igual a _MinPts_, el punto es un punto central y se inicia un nuevo clúster. Todos sus vecinos dentro de $\epsilon$ se añaden al clúster (si no están ya asignados a otro clúster o marcados como ruido).</span>
-<span id="cb5-131"><a href="#cb5-131" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>Para cada nuevo punto añadido al clúster (especialmente si es un punto central), el proceso de expansión continúa recursivamente. Los puntos fronterizos se incluyen en el clúster pero no expanden el clúster por sí mismos.</span>
-<span id="cb5-132"><a href="#cb5-132" aria-hidden="true" tabindex="-1"></a><span class="ss">6.  </span>El proceso se repite hasta que todos los puntos han sido visitados.</span>
-<span id="cb5-133"><a href="#cb5-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-134"><a href="#cb5-134" aria-hidden="true" tabindex="-1"></a>No requiere especificar $k$, descubre clústeres de formas arbitrarias, robusto a outliers (los etiqueta como ruido). Es sensible a los parámetros $\epsilon$ y _MinPts_ (que pueden ser difíciles de elegir, especialmente en datos de alta dimensión), no maneja bien clústeres con densidades muy diferentes. Hay otros algoritmos más modernos como HDBSCAN que pueden ser más robustos a estos problemas.</span>
+<div class="sourceCode" id="cb7" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Agrupamiento"</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> html</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>Los algoritmos de clustering (o agrupamiento) son una clase fundamental de técnicas de aprendizaje no supervisado en el campo del Machine Learning y la Ciencia de Datos. Su propósito principal es organizar un conjunto de datos en grupos de manera que los elementos dentro de un mismo grupo sean más similares entre sí que con respecto a los elementos de otros grupos.</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="fu">### ¿Para qué sirven?</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>Los algoritmos de clustering son herramientas poderosas para descubrir patrones y para estructurar datos sin etiquetas. Algunas de sus aplicaciones posibles:</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Análisis exploratorio de datos (EDA).</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Detección de valores atípicos (outliers).</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Organización y resumen de información.</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Compresión de datos.</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="fu">### Medidas de la calidad de agrupamiento</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>Existen muchas medidas de desempeño para clustering, solo en la versión estable de _sklearn_ se listan 9 <span class="ot">&lt;https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation&gt;</span>. Cada una de ellas se ajusta a las diferentes necesidades del problema. En este curso nos enfocaremos en dos:</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>El _coeficiente de silueta_ es una medida interna, lo que significa que no requiere conocer las etiquetas verdaderas de los datos, sino que se basa únicamente en la estructura inherente de los clústeres formados por el algoritmo. Mide qué tan similar es un objeto (punto de datos) a su propio clúster en comparación con otros clústeres. Para cada punto de datos, calcula una puntuación que indica la cohesión del punto dentro de su clúster y la separación de ese punto con respecto a los clústeres vecinos. El coeficiente de silueta global para todo el agrupamiento es el promedio de los coeficientes de silueta de todos los puntos de datos del conjunto. Ver @wiki-silhouette-coefficient para más detalles.</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Varia entre -1 y 1</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Un coeficiente de silueta cercano a 1 sugiere que los clustering es denso y bien separado.</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Un coeficiente de silueta cercano a -1 sugiere que los grupos están superpuestos, son muy densos o que la asignación no es buena.</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>En el paquete <span class="in">`sklearn`</span> lo podemos encontrar en <span class="in">`sklearn.metrics`</span> función silhouette_score.</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>El _Índice de rand ajustado (Adjusted Rand Index - ARI)_ es una métrica que requiere las etiquetas de clase verdaderas o de referencia (ground truth). El ARI cuantifica el grado de concordancia entre las etiquetas de clúster generadas por un algoritmo de agrupamiento y las etiquetas de clase preexistentes de los datos. Ver @wiki-adjusted-rand-index para más detalles.</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Varia entre 0 y 1.</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Valores cercanos a 0 van por una distribución aleatoria entre las partición predicha y la verdadera.</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Valores cercanos a 1 van indican la concordancia entre las partición predicha y la verdadera.</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>En el paquete <span class="in">`sklearn`</span> lo podemos encontrar en <span class="in">`sklearn.metrics`</span> función <span class="in">`adjusted_rand_score`</span>.</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a><span class="fu">## El problema de agrupamiento</span></span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>Los algoritmos de clustering buscan una partición $C = <span class="sc">\{</span>C_1, C_2, ..., C_k<span class="sc">\}</span>$ de un conjunto de datos $X = <span class="sc">\{</span>x_1, x_2, ..., x_n<span class="sc">\}</span>$, donde $x_i \in \mathbb{R}^d$, tal que los puntos dentro de cada clúster $C_j$ son _similares_ y los puntos de diferentes clústeres son _disímiles_. La noción de similitud se define mediante una métrica de distancia (e.g., Euclidiana, Manhattan, Mahalanobis) o una función de similitud (e.g., similitud coseno). Algunos ejemplos prototipicos son los siguientes:</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>K-Means: Intenta dividir los datos en un número $k$ predefinido de clústeres, asignando cada punto al centroide del clúster más cercano.</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a><span class="ss">* </span>DBSCAN (Density-Based Spatial Clustering of Applications with Noise): Agrupa puntos que están densamente conectados, siendo muy bueno para encontrar clústeres de formas arbitrarias y detectar ruido.</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>El resto del documento describe algunos algoritmos de clustering y se prueban de manera práctica.</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a><span class="fu">### K-Means (y variantes)</span></span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>Es un algoritmo de clustering que busca particionar la base de datos y minimizar la suma de cuadrados de las distancias entre cada punto y el centroide de su clúster asignado. Asume grupos de forma esférica y tamaño similar.</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>Basado en el algoritmo de Expectation-Maximization - EM o, algoritmo de Lloyd @wiki-Lloyd:</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Inicialización: Se seleccionan $k$ centroides iniciales aleatoriamente de los puntos de datos o mediante estrategias más sofisticadas, e.g., K-Means++ o k-centers.</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Asignación a centroides cercanos (expectation): Cada punto de datos $x_i$ se asigna al clúster cuyo centroide $\mu_j$ es el más cercano, según la métrica de distancia seleccionada (comúnmente Euclidiana). La asignación se basa en la función de costo:</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>    $$J = \sum_{j=1}^{k} \sum_{x_i \in C_j} \|x_i - \mu_j\|^2$$</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Actualización de centros (maximization): Los centroides de cada clúster se recalculan como la media de todos los puntos asignados a ese clúster:</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    $$\mu_j = \frac{1}{|C_j|} \sum_{x_i \in C_j} x_i$$</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Convergencia: Los pasos 2 y 3 se repiten iterativamente hasta que la asignación de clústeres ya no cambia, la suma de cuadrados de las distancias se minimiza, o se alcanza un número máximo de iteraciones.</span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>Es rápido y escalable para grandes datasets, fácil de implementar y entender. Sin embargo, se debe tener en cuenta que es sensible a la inicialización de los centroides, requiere que $k$ sea preespecificado, no maneja bien clústeres de formas no esféricas o densidades variables, y es sensible a outliers.</span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>Ejemplo:</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> silhouette_score, adjusted_rand_score</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>df_titanic <span class="op">=</span> sns.load_dataset(<span class="st">'titanic'</span>)</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">'pclass'</span>, <span class="st">'age'</span>, <span class="st">'sibsp'</span>, <span class="st">'parch'</span>, <span class="st">'fare'</span>]</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a>df_kmeans <span class="op">=</span> df_titanic[features].copy()</span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>true_labels <span class="op">=</span> df_titanic[<span class="st">'survived'</span>] <span class="co"># Estas son nuestras "etiquetas verdaderas" para el ARI</span></span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a>df_kmeans[<span class="st">'age'</span>].fillna(df_kmeans[<span class="st">'age'</span>].median(), inplace<span class="op">=</span><span class="va">True</span>) <span class="co"># imputación de datos (recordar secciones previas)</span></span>
+<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>K-means es sensible a la escala, por lo que nos aseguramos de normalizar</span>
+<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(df_kmeans)</span>
+<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>Ahora, aplicamos K-Means con 2 clusters</span>
+<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>n_clusters <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>kmeans <span class="op">=</span> KMeans(n_clusters<span class="op">=</span>n_clusters, random_state<span class="op">=</span><span class="dv">42</span>, n_init<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>kmeans.fit(scaled_features)</span>
+<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>cluster_labels <span class="op">=</span> kmeans.labels_ <span class="co"># Etiquetas de clúster generadas por K-Means</span></span>
+<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a>Ahora calculamos las medidas de desempeño</span>
+<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a>sil <span class="op">=</span> silhouette_score(scaled_features, cluster_labels)</span>
+<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a>ari_score <span class="op">=</span> adjusted_rand_score(true_labels, cluster_labels)</span>
+<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>Markdown(<span class="ss">f"""</span></span>
+<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a><span class="ss">Particiones: </span><span class="sc">{</span>pd<span class="sc">.</span>Series(cluster_labels)<span class="sc">.</span>value_counts()<span class="sc">.</span>tolist()<span class="sc">}</span></span>
+<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a><span class="ss">| nombre  |  valor  |</span></span>
+<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a><span class="ss">|---------|---------|</span></span>
+<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a><span class="ss">| coeficiente de silueta | </span><span class="sc">{</span>sil<span class="sc">:.3f}</span><span class="ss"> |</span></span>
+<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a><span class="ss">| adjusted rand index    | </span><span class="sc">{</span>ari_score<span class="sc">:.3f}</span><span class="ss"> |</span></span>
+<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span>)</span>
+<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Visualización</span></span>
+<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>).fit_transform(scaled_features)</span>
+<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>df_pca <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
+<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a><span class="co"># Añadir la columna de supervivencia para la visualización</span></span>
+<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a>df_pca[<span class="st">'survived'</span>] <span class="op">=</span> df_titanic[<span class="st">'survived'</span>]</span>
+<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>df_pca[<span class="st">'cluster_labels'</span>] <span class="op">=</span> cluster_labels</span>
+<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-clustering</span></span>
+<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-caption: Visualización 2D del agrupamiento</span></span>
+<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_pca,</span>
+<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'cluster_labels'</span>, </span>
+<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Sobrevivió (clusters)'</span>, labels<span class="op">=</span>[<span class="st">'No'</span>, <span class="st">'Sí'</span>])</span>
+<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>Comparando con las etiquetas reales</span>
+<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_pca,</span>
+<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'survived'</span>, </span>
+<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Sobrevivió (true labels)'</span>, labels<span class="op">=</span>[<span class="st">'No'</span>, <span class="st">'Sí'</span>])</span>
+<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Actividades</span></span>
+<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Replicar el ejercicio cambiando a la base de datos de <span class="in">`digits`</span> y visualización con UMAP.</span>
+<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>¿Qué pasaría en diferentes valores de $k$ (<span class="in">`n_clusters`</span>)?</span>
+<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a><span class="fu">### DBSCAN (Density-Based Spatial Clustering of Applications with Noise)</span></span>
+<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a>Identifica clústeres como regiones densas de puntos en el espacio de datos, separadas por regiones de menor densidad. Es capaz de descubrir clústeres de formas arbitrarias y es robusto al ruido (outliers).</span>
+<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a>Se requieren una serie de hiperpárametros y conceptos para su explicación. Sea $\epsilon$ el radio máximo para considerar dos puntos como vecinos. _MinPts_ el número mínimo de puntos requeridos para formar una región densa. </span>
+<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Se selecciona un punto de datos aleatorio que no ha sido visitado.</span>
+<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Se recuperan todos sus vecinos dentro de $\epsilon$.</span>
+<span id="cb7-188"><a href="#cb7-188" aria-hidden="true" tabindex="-1"></a><span class="ss">3.  </span>Si el número de vecinos es menor que _MinPts_, el punto se etiqueta como ruido (potencialmente, hasta que un punto central lo alcance).</span>
+<span id="cb7-189"><a href="#cb7-189" aria-hidden="true" tabindex="-1"></a><span class="ss">4.  </span>Si el número de vecinos es mayor o igual a _MinPts_, el punto es un punto central y se inicia un nuevo clúster. Todos sus vecinos dentro de $\epsilon$ se añaden al clúster (si no están ya asignados a otro clúster o marcados como ruido).</span>
+<span id="cb7-190"><a href="#cb7-190" aria-hidden="true" tabindex="-1"></a><span class="ss">5.  </span>Para cada nuevo punto añadido al clúster (especialmente si es un punto central), el proceso de expansión continúa recursivamente. Los puntos fronterizos se incluyen en el clúster pero no expanden el clúster por sí mismos.</span>
+<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a><span class="ss">6.  </span>El proceso se repite hasta que todos los puntos han sido visitados.</span>
+<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a>No requiere especificar $k$, descubre clústeres de formas arbitrarias, robusto a outliers (los etiqueta como ruido). Es sensible a los parámetros $\epsilon$ y _MinPts_ (que pueden ser difíciles de elegir, especialmente en datos de alta dimensión), no maneja bien clústeres con densidades muy diferentes. Hay otros algoritmos más modernos como HDBSCAN que pueden ser más robustos a estos problemas.</span>
+<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-198"><a href="#cb7-198" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb7-199"><a href="#cb7-199" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb7-200"><a href="#cb7-200" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb7-201"><a href="#cb7-201" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb7-202"><a href="#cb7-202" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb7-203"><a href="#cb7-203" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.cluster <span class="im">import</span> KMeans</span>
+<span id="cb7-204"><a href="#cb7-204" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> silhouette_score, adjusted_rand_score</span>
+<span id="cb7-205"><a href="#cb7-205" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb7-206"><a href="#cb7-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-207"><a href="#cb7-207" aria-hidden="true" tabindex="-1"></a>df_titanic <span class="op">=</span> sns.load_dataset(<span class="st">'titanic'</span>)</span>
+<span id="cb7-208"><a href="#cb7-208" aria-hidden="true" tabindex="-1"></a>features <span class="op">=</span> [<span class="st">'pclass'</span>, <span class="st">'age'</span>, <span class="st">'sibsp'</span>, <span class="st">'parch'</span>, <span class="st">'fare'</span>]</span>
+<span id="cb7-209"><a href="#cb7-209" aria-hidden="true" tabindex="-1"></a>df_kmeans <span class="op">=</span> df_titanic[features].copy()</span>
+<span id="cb7-210"><a href="#cb7-210" aria-hidden="true" tabindex="-1"></a>true_labels <span class="op">=</span> df_titanic[<span class="st">'survived'</span>] <span class="co"># Estas son nuestras "etiquetas verdaderas" para el ARI</span></span>
+<span id="cb7-211"><a href="#cb7-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-212"><a href="#cb7-212" aria-hidden="true" tabindex="-1"></a>df_kmeans[<span class="st">'age'</span>].fillna(df_kmeans[<span class="st">'age'</span>].median(), inplace<span class="op">=</span><span class="va">True</span>) <span class="co"># imputación de datos (recordar secciones previas)</span></span>
+<span id="cb7-213"><a href="#cb7-213" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-214"><a href="#cb7-214" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-215"><a href="#cb7-215" aria-hidden="true" tabindex="-1"></a>K-means es sensible a la escala, por lo que nos aseguramos de normalizar</span>
+<span id="cb7-218"><a href="#cb7-218" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-219"><a href="#cb7-219" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb7-220"><a href="#cb7-220" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(df_kmeans)</span>
+<span id="cb7-221"><a href="#cb7-221" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-222"><a href="#cb7-222" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-223"><a href="#cb7-223" aria-hidden="true" tabindex="-1"></a>Ahora, aplicamos K-Means con 2 clusters</span>
+<span id="cb7-226"><a href="#cb7-226" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-227"><a href="#cb7-227" aria-hidden="true" tabindex="-1"></a>n_clusters <span class="op">=</span> <span class="dv">2</span></span>
+<span id="cb7-228"><a href="#cb7-228" aria-hidden="true" tabindex="-1"></a>kmeans <span class="op">=</span> DBSCAN(n_clusters<span class="op">=</span>n_clusters, random_state<span class="op">=</span><span class="dv">42</span>, n_init<span class="op">=</span><span class="dv">10</span>)</span>
+<span id="cb7-229"><a href="#cb7-229" aria-hidden="true" tabindex="-1"></a>kmeans.fit(scaled_features)</span>
+<span id="cb7-230"><a href="#cb7-230" aria-hidden="true" tabindex="-1"></a>cluster_labels <span class="op">=</span> kmeans.labels_ <span class="co"># Etiquetas de clúster generadas por K-Means</span></span>
+<span id="cb7-231"><a href="#cb7-231" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-232"><a href="#cb7-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-233"><a href="#cb7-233" aria-hidden="true" tabindex="-1"></a>Ahora calculamos las medidas de desempeño</span>
+<span id="cb7-236"><a href="#cb7-236" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-237"><a href="#cb7-237" aria-hidden="true" tabindex="-1"></a>sil <span class="op">=</span> silhouette_score(scaled_features, cluster_labels)</span>
+<span id="cb7-238"><a href="#cb7-238" aria-hidden="true" tabindex="-1"></a>ari_score <span class="op">=</span> adjusted_rand_score(true_labels, cluster_labels)</span>
+<span id="cb7-239"><a href="#cb7-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-240"><a href="#cb7-240" aria-hidden="true" tabindex="-1"></a>Markdown(<span class="ss">f"""</span></span>
+<span id="cb7-241"><a href="#cb7-241" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-242"><a href="#cb7-242" aria-hidden="true" tabindex="-1"></a><span class="ss">Particiones: </span><span class="sc">{</span>pd<span class="sc">.</span>Series(cluster_labels)<span class="sc">.</span>value_counts()<span class="sc">.</span>tolist()<span class="sc">}</span></span>
+<span id="cb7-243"><a href="#cb7-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-244"><a href="#cb7-244" aria-hidden="true" tabindex="-1"></a><span class="ss">| nombre  |  valor  |</span></span>
+<span id="cb7-245"><a href="#cb7-245" aria-hidden="true" tabindex="-1"></a><span class="ss">|---------|---------|</span></span>
+<span id="cb7-246"><a href="#cb7-246" aria-hidden="true" tabindex="-1"></a><span class="ss">| coeficiente de silueta | </span><span class="sc">{</span>sil<span class="sc">:.3f}</span><span class="ss"> |</span></span>
+<span id="cb7-247"><a href="#cb7-247" aria-hidden="true" tabindex="-1"></a><span class="ss">| adjusted rand index    | </span><span class="sc">{</span>ari_score<span class="sc">:.3f}</span><span class="ss"> |</span></span>
+<span id="cb7-248"><a href="#cb7-248" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span>)</span>
+<span id="cb7-249"><a href="#cb7-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-250"><a href="#cb7-250" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-251"><a href="#cb7-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-252"><a href="#cb7-252" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Visualización</span></span>
+<span id="cb7-255"><a href="#cb7-255" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-256"><a href="#cb7-256" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb7-257"><a href="#cb7-257" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb7-258"><a href="#cb7-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-259"><a href="#cb7-259" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>).fit_transform(scaled_features)</span>
+<span id="cb7-260"><a href="#cb7-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-261"><a href="#cb7-261" aria-hidden="true" tabindex="-1"></a>df_pca <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
+<span id="cb7-262"><a href="#cb7-262" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-263"><a href="#cb7-263" aria-hidden="true" tabindex="-1"></a><span class="co"># Añadir la columna de supervivencia para la visualización</span></span>
+<span id="cb7-264"><a href="#cb7-264" aria-hidden="true" tabindex="-1"></a>df_pca[<span class="st">'survived'</span>] <span class="op">=</span> df_titanic[<span class="st">'survived'</span>]</span>
+<span id="cb7-265"><a href="#cb7-265" aria-hidden="true" tabindex="-1"></a>df_pca[<span class="st">'cluster_labels'</span>] <span class="op">=</span> cluster_labels</span>
+<span id="cb7-266"><a href="#cb7-266" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-267"><a href="#cb7-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-270"><a href="#cb7-270" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-271"><a href="#cb7-271" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-clustering</span></span>
+<span id="cb7-272"><a href="#cb7-272" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-caption: Visualización 2D del agrupamiento</span></span>
+<span id="cb7-273"><a href="#cb7-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-274"><a href="#cb7-274" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb7-275"><a href="#cb7-275" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb7-276"><a href="#cb7-276" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_pca,</span>
+<span id="cb7-277"><a href="#cb7-277" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb7-278"><a href="#cb7-278" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb7-279"><a href="#cb7-279" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'cluster_labels'</span>, </span>
+<span id="cb7-280"><a href="#cb7-280" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb7-281"><a href="#cb7-281" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb7-282"><a href="#cb7-282" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-283"><a href="#cb7-283" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Sobrevivió (clusters)'</span>, labels<span class="op">=</span>[<span class="st">'No'</span>, <span class="st">'Sí'</span>])</span>
+<span id="cb7-284"><a href="#cb7-284" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb7-285"><a href="#cb7-285" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-286"><a href="#cb7-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-287"><a href="#cb7-287" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-288"><a href="#cb7-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-289"><a href="#cb7-289" aria-hidden="true" tabindex="-1"></a>Comparando con las etiquetas reales</span>
+<span id="cb7-292"><a href="#cb7-292" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb7-293"><a href="#cb7-293" aria-hidden="true" tabindex="-1"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb7-294"><a href="#cb7-294" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb7-295"><a href="#cb7-295" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>df_pca,</span>
+<span id="cb7-296"><a href="#cb7-296" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb7-297"><a href="#cb7-297" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb7-298"><a href="#cb7-298" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'survived'</span>, </span>
+<span id="cb7-299"><a href="#cb7-299" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb7-300"><a href="#cb7-300" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb7-301"><a href="#cb7-301" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-302"><a href="#cb7-302" aria-hidden="true" tabindex="-1"></a>plt.legend(title<span class="op">=</span><span class="st">'Sobrevivió (true labels)'</span>, labels<span class="op">=</span>[<span class="st">'No'</span>, <span class="st">'Sí'</span>])</span>
+<span id="cb7-303"><a href="#cb7-303" aria-hidden="true" tabindex="-1"></a>plt.grid(<span class="va">True</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.6</span>)</span>
+<span id="cb7-304"><a href="#cb7-304" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-305"><a href="#cb7-305" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb7-306"><a href="#cb7-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-307"><a href="#cb7-307" aria-hidden="true" tabindex="-1"></a><span class="fu">#### Actividades</span></span>
+<span id="cb7-308"><a href="#cb7-308" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Replicar el ejercicio pero trabajando sobre <span class="in">`digits`</span> y ejecutando DBSCAN sobre una proyección 2D de UMAP.</span>
 </code><button title="Copiar al portapapeles" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

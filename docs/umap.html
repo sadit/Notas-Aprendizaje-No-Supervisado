@@ -277,30 +277,30 @@ window.Quarto = {
 <p>A diferencia de <strong>PCA (Análisis de Componentes Principales)</strong>, las técnicas de <strong>reducción de dimensionalidad no lineal</strong> pueden capturar relaciones más complejas entre los datos; se suele involucrar una función de distancia o kernel para describir la relación entre dos elementos de una base de datos. Esta función de distancia captura la estructura del espacio mediante una matriz de afinidad o una gráfica de vecinos cercanos, que se cálcula en alta dimensión y se <em>replica</em> en baja baja dimensión. Ver <span class="citation" data-cites="lee2007nonlinear">Lee y Verleysen (<a href="#ref-lee2007nonlinear" role="doc-biblioref">2007</a>)</span> para un tratado más extenso en el tema.</p>
 <section id="uniform-manifold-approximation-and-projection-umap" class="level2">
 <h2 class="anchored" data-anchor-id="uniform-manifold-approximation-and-projection-umap">Uniform Manifold Approximation and Projection (UMAP)</h2>
-<p>UMAP es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la <strong>geometría Riemanniana</strong> y la <strong>topología algebraica</strong>.</p>
+<p>mcinnes2018umap introduce UMAP, que es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la geometría Riemanniana y la topología algebraica.</p>
 <p>El algoritmo de UMAP se puede desglosar en dos fases principales:</p>
 <ol type="1">
-<li><strong>Construcción de una representación topológica fuzzy de alta dimensión:</strong>
+<li>Construcción de una representación topológica fuzzy de alta dimensión:
 <ul>
 <li>Se presume que los datos están muestreados a partir de una <strong>variedad (manifold) de Riemann</strong> de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.</li>
-<li><strong>Grafo de k-vecinos:</strong> Para cada punto <span class="math inline">\(x_i\)</span> en el espacio de alta dimensión, se identifican sus <span class="math inline">\(k\)</span> vecinos más cercanos (<span class="math inline">\(k\)</span> es el parámetro <code>n_neighbors</code>).</li>
-<li><strong>Complejo simplicial fuzzy:</strong> A partir de estos vecinos, UMAP construye un <strong>complejo simplicial fuzzy</strong> (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos <span class="math inline">\(x_i\)</span> y <span class="math inline">\(x_j\)</span> se modela como una <strong>probabilidad de conectividad</strong> <span class="math inline">\(p_{ij}\)</span>.</li>
+<li>Grafo de k-vecinos: Para cada punto <span class="math inline">\(x_i\)</span> en el espacio de alta dimensión, se identifican sus <span class="math inline">\(k\)</span> vecinos más cercanos (<span class="math inline">\(k\)</span> es el parámetro <code>n_neighbors</code>).</li>
+<li>Complejo simplicial fuzzy: A partir de estos vecinos, UMAP construye un <em>complejo simplicial fuzzy</em> (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos <span class="math inline">\(x_i\)</span> y <span class="math inline">\(x_j\)</span> se modela como una <em>probabilidad de conectividad</em> <span class="math inline">\(p_{ij}\)</span>.</li>
 </ul></li>
-<li><strong>Optimización de la incrustación de baja dimensión:</strong>
+<li>Optimización de la incrustación de baja dimensión:
 <ul>
-<li><strong>Construcción de un grafo de baja dimensión:</strong> Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades <span class="math inline">\(q_{ij}\)</span> que idealmente reflejan las <span class="math inline">\(p_{ij}\)</span> del espacio de alta dimensión.</li>
-<li><strong>Función de costo:</strong> UMAP minimiza una <strong>función de costo de entropía cruzada binaria</strong> (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:
+<li>Construcción de un grafo de baja dimensión: Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades <span class="math inline">\(q_{ij}\)</span> que idealmente reflejan las <span class="math inline">\(p_{ij}\)</span> del espacio de alta dimensión.</li>
+<li>Función de costo: UMAP minimiza una <em>función de costo de entropía cruzada binaria</em> (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:
 <ul>
 <li>Si dos puntos están conectados en alta dimensión (<span class="math inline">\(p_{ij}\)</span> es alta) pero no en baja (<span class="math inline">\(q_{ij}\)</span> es baja), hay una penalización fuerte. (Fuerzas atractivas)</li>
 <li>Si dos puntos no están conectados en alta dimensión (<span class="math inline">\(p_{ij}\)</span> es baja) pero sí lo están en baja (<span class="math inline">\(q_{ij}\)</span> es alta), la penalización es menor. (Fuerzas repulsivas, gestionadas eficientemente por un muestreo negativo).</li>
 </ul></li>
-<li><strong>Optimización:</strong> La minimización se realiza mediante <strong>descenso de gradiente estocástico (SGD)</strong>. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades <span class="math inline">\(q_{ij}\)</span> se acerquen lo más posible a las <span class="math inline">\(p_{ij}\)</span>.</li>
+<li>Optimización: La minimización se realiza mediante <em>descenso de gradiente estocástico (SGD)</em>. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades <span class="math inline">\(q_{ij}\)</span> se acerquen lo más posible a las <span class="math inline">\(p_{ij}\)</span>.</li>
 </ul></li>
 </ol>
 </section>
 <section id="ejemplo" class="level2">
 <h2 class="anchored" data-anchor-id="ejemplo">Ejemplo</h2>
-<div id="9099f0ca" class="cell" data-execution_count="1">
+<div id="e9406d4a" class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
@@ -310,7 +310,7 @@ window.Quarto = {
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap </span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>estaremos usando la base de datos digits de digits escritos a mano más alta, en particular de imágenes en escala de grises de <span class="math inline">\(8 \times 8\)</span>, representadas como vectores de 64 dimensiones.</p>
-<div id="f1c15745" class="cell" data-execution_count="2">
+<div id="d04ee7d3" class="cell" data-execution_count="2">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> datasets.load_digits()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(digits.DESCR)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -367,7 +367,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 </div>
 </div>
 <p>El modelo UMAP se aprende y se usa para transformar la base de datos original de 784 dimensiones a solo dos. Las imagenes se ven como sigue:</p>
-<div id="3303f6ca" class="cell" data-execution_count="3">
+<div id="dbf55ad1" class="cell" data-execution_count="3">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">1</span>, ncols<span class="op">=</span><span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, image, label <span class="kw">in</span> <span class="bu">zip</span>(axes, digits.images, digits.target):</span>
@@ -386,11 +386,11 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 </div>
 </div>
 <p>Definición del modelo UMAP y transformación:</p>
-<div id="3c2eceee" class="cell" data-execution_count="4">
+<div id="8d12d088" class="cell" data-execution_count="4">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Graficamos con <code>seaborn</code>:</p>
-<div id="8015c071" class="cell" data-execution_count="5">
+<div id="c72c6bac" class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
@@ -399,7 +399,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-6-output-1.png" width="587" height="429" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-6-output-1.png" width="596" height="429" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -407,7 +407,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <section id="cómo-se-vería-con-pca-2d" class="level3">
 <h3 class="anchored" data-anchor-id="cómo-se-vería-con-pca-2d">¿Cómo se vería con PCA 2D?</h3>
 <p>Esta pregunta se responderá comparando de manera práctica</p>
-<div id="b5376202" class="cell" data-execution_count="6">
+<div id="801b1736" class="cell" data-execution_count="6">
 <div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -437,7 +437,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 </section>
 <section id="parametros-número-de-vecinos" class="level3">
 <h3 class="anchored">Parametros: número de vecinos</h3>
-<div id="541167f1" class="cell" data-execution_count="7">
+<div id="bd64610b" class="cell" data-execution_count="7">
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nn <span class="kw">in</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">1000</span>, <span class="dv">1797</span>]:</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>))</span>
@@ -468,7 +468,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-8-output-5.png" width="587" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-8-output-5.png" width="596" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -478,7 +478,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-8-output-7.png" width="587" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-8-output-7.png" width="596" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -498,7 +498,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-8-output-11.png" width="597" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-8-output-11.png" width="600" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -508,7 +508,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-8-output-13.png" width="585" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-8-output-13.png" width="595" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -528,7 +528,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-8-output-17.png" width="589" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-8-output-17.png" width="587" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -548,7 +548,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 </div>
 </div>
 <p>Ahora veremos como actua el parámetro <code>min_dist</code></p>
-<div id="cfeab5aa" class="cell" data-execution_count="8">
+<div id="0b3ddb21" class="cell" data-execution_count="8">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> min_dist <span class="kw">in</span> [<span class="fl">0.01</span>, <span class="fl">0.03</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.0</span>]:</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    nn <span class="op">=</span> <span class="dv">15</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>, min_dist<span class="op">=</span>min_dist).fit_transform(digits.data)</span>
@@ -566,7 +566,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-9-output-2.png" width="596" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-9-output-2.png" width="587" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -576,7 +576,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-9-output-4.png" width="587" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-9-output-4.png" width="596" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -586,7 +586,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-9-output-6.png" width="587" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-9-output-6.png" width="596" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -596,7 +596,7 @@ L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
 <div class="cell-output cell-output-display">
 <div>
 <figure class="figure">
-<p><img src="umap_files/figure-html/cell-9-output-8.png" width="595" height="449" class="figure-img"></p>
+<p><img src="umap_files/figure-html/cell-9-output-8.png" width="587" height="449" class="figure-img"></p>
 </figure>
 </div>
 </div>
@@ -1112,133 +1112,132 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## Uniform Manifold Approximation and Projection (UMAP)</span></span>
 <span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>UMAP es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la **geometría Riemanniana** y la **topología algebraica**.</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>mcinnes2018umap introduce UMAP, que es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la geometría Riemanniana y la topología algebraica. </span>
 <span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>El algoritmo de UMAP se puede desglosar en dos fases principales:</span>
 <span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>**Construcción de una representación topológica fuzzy de alta dimensión:**</span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Se presume que los datos están muestreados a partir de una **variedad (manifold) de Riemann** de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.</span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>**Grafo de k-vecinos:** Para cada punto $x_i$ en el espacio de alta dimensión, se identifican sus $k$ vecinos más cercanos ($k$ es el parámetro <span class="in">`n_neighbors`</span>).</span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>**Complejo simplicial fuzzy:** A partir de estos vecinos, UMAP construye un **complejo simplicial fuzzy** (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos $x_i$ y $x_j$ se modela como una **probabilidad de conectividad** $p_{ij}$. </span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Construcción de una representación topológica fuzzy de alta dimensión:</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Se presume que los datos están muestreados a partir de una __variedad (manifold) de Riemann__ de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Grafo de k-vecinos: Para cada punto $x_i$ en el espacio de alta dimensión, se identifican sus $k$ vecinos más cercanos ($k$ es el parámetro <span class="in">`n_neighbors`</span>).</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Complejo simplicial fuzzy: A partir de estos vecinos, UMAP construye un _complejo simplicial fuzzy_ (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos $x_i$ y $x_j$ se modela como una _probabilidad de conectividad_ $p_{ij}$. </span>
 <span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>**Optimización de la incrustación de baja dimensión:**</span>
-<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>**Construcción de un grafo de baja dimensión:** Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades $q_{ij}$ que idealmente reflejan las $p_{ij}$ del espacio de alta dimensión. </span>
-<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>**Función de costo:** UMAP minimiza una **función de costo de entropía cruzada binaria** (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Optimización de la incrustación de baja dimensión:</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Construcción de un grafo de baja dimensión: Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades $q_{ij}$ que idealmente reflejan las $p_{ij}$ del espacio de alta dimensión. </span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Función de costo: UMAP minimiza una _función de costo de entropía cruzada binaria_ (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:</span>
 <span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="ss">        * </span>Si dos puntos están conectados en alta dimensión ($p_{ij}$ es alta) pero no en baja ($q_{ij}$ es baja), hay una penalización fuerte. (Fuerzas atractivas)</span>
 <span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="ss">        * </span>Si dos puntos no están conectados en alta dimensión ($p_{ij}$ es baja) pero sí lo están en baja ($q_{ij}$ es alta), la penalización es menor. (Fuerzas repulsivas, gestionadas eficientemente por un muestreo negativo).</span>
-<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>**Optimización:** La minimización se realiza mediante **descenso de gradiente estocástico (SGD)**. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades $q_{ij}$ se acerquen lo más posible a las $p_{ij}$.</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Optimización: La minimización se realiza mediante _descenso de gradiente estocástico (SGD)_. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades $q_{ij}$ se acerquen lo más posible a las $p_{ij}$.</span>
 <span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Ejemplo</span></span>
 <span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
-<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
-<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
-<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
-<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap </span>
-<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>estaremos usando la base de datos digits de digits escritos a mano más alta, en particular de imágenes en escala de grises de $8 \times 8$, representadas como vectores de 64 dimensiones. </span>
-<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> datasets.load_digits()</span>
-<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(digits.DESCR)</span>
-<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a>El modelo UMAP se aprende y se usa para transformar la base de datos original de 784 dimensiones a solo dos. Las imagenes se ven como sigue:</span>
-<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">1</span>, ncols<span class="op">=</span><span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
-<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, image, label <span class="kw">in</span> <span class="bu">zip</span>(axes, digits.images, digits.target):</span>
-<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>    ax.set_axis_off()</span>
-<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>    ax.imshow(image, cmap<span class="op">=</span>plt.cm.gray_r, interpolation<span class="op">=</span><span class="st">"nearest"</span>)</span>
-<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"label: </span><span class="sc">%i</span><span class="st">"</span> <span class="op">%</span> label)</span>
-<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
-<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="co">#plt.matshow(digits.images[0])</span></span>
-<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>Definición del modelo UMAP y transformación:</span>
-<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
-<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>Graficamos con <span class="in">`seaborn`</span>:</span>
-<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
-<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
-<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
-<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
-<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
-<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap </span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>estaremos usando la base de datos digits de digits escritos a mano más alta, en particular de imágenes en escala de grises de $8 \times 8$, representadas como vectores de 64 dimensiones. </span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> datasets.load_digits()</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(digits.DESCR)</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>El modelo UMAP se aprende y se usa para transformar la base de datos original de 784 dimensiones a solo dos. Las imagenes se ven como sigue:</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">1</span>, ncols<span class="op">=</span><span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, image, label <span class="kw">in</span> <span class="bu">zip</span>(axes, digits.images, digits.target):</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>    ax.set_axis_off()</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>    ax.imshow(image, cmap<span class="op">=</span>plt.cm.gray_r, interpolation<span class="op">=</span><span class="st">"nearest"</span>)</span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"label: </span><span class="sc">%i</span><span class="st">"</span> <span class="op">%</span> label)</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="co">#plt.matshow(digits.images[0])</span></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>Definición del modelo UMAP y transformación:</span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a>Graficamos con <span class="in">`seaborn`</span>:</span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a><span class="fu">### ¿Cómo se vería con PCA 2D?</span></span>
-<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a>Esta pregunta se responderá comparando de manera práctica</span>
-<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
-<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
-<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
-<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(digits.data)</span>
-<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a><span class="co">#scaled_features = digits.data</span></span>
-<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>)</span>
-<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> model.fit_transform(scaled_features)</span>
-<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>pca_df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
-<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>pca_df[<span class="st">'target'</span>] <span class="op">=</span> digits[<span class="st">'target'</span>]</span>
-<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
-<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>pca_df,</span>
-<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
-<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
-<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'target'</span>, <span class="co"># Colorea los puntos según si sobrevivieron o no</span></span>
-<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
-<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
-<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a><span class="fu">### Parametros: número de vecinos</span></span>
-<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nn <span class="kw">in</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">1000</span>, <span class="dv">1797</span>]:</span>
-<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
-<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>))</span>
-<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
-<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
-<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
-<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
-<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
-<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
-<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a>Ahora veremos como actua el parámetro <span class="in">`min_dist`</span></span>
-<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> min_dist <span class="kw">in</span> [<span class="fl">0.01</span>, <span class="fl">0.03</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.0</span>]:</span>
-<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>    nn <span class="op">=</span> <span class="dv">15</span></span>
-<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>, min_dist<span class="op">=</span>min_dist).fit_transform(digits.data)</span>
-<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">, min_dist=</span><span class="sc">{</span>min_dist<span class="sc">}</span><span class="ss">"</span>))</span>
-<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
-<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
-<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
-<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
-<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
-<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
-<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a><span class="fu">## Criterios prácticos para elegir entre PCA y UMAP</span></span>
-<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Estructura</span>
-<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Eficiencia</span>
-<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Reproducibilidad</span>
-<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a><span class="fu">### ¿Cómo se vería con PCA 2D?</span></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>Esta pregunta se responderá comparando de manera práctica</span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(digits.data)</span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a><span class="co">#scaled_features = digits.data</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> model.fit_transform(scaled_features)</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>pca_df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>pca_df[<span class="st">'target'</span>] <span class="op">=</span> digits[<span class="st">'target'</span>]</span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>pca_df,</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'target'</span>, <span class="co"># Colorea los puntos según si sobrevivieron o no</span></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a><span class="fu">### Parametros: número de vecinos</span></span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nn <span class="kw">in</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">1000</span>, <span class="dv">1797</span>]:</span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a>Ahora veremos como actua el parámetro <span class="in">`min_dist`</span></span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> min_dist <span class="kw">in</span> [<span class="fl">0.01</span>, <span class="fl">0.03</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.0</span>]:</span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>    nn <span class="op">=</span> <span class="dv">15</span></span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>, min_dist<span class="op">=</span>min_dist).fit_transform(digits.data)</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">, min_dist=</span><span class="sc">{</span>min_dist<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a><span class="fu">## Criterios prácticos para elegir entre PCA y UMAP</span></span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Estructura</span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Eficiencia</span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Reproducibilidad</span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a></span>
 </code><button title="Copiar al portapapeles" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
 </div></div></div></div></div>
 </div> <!-- /content -->

@@ -42,7 +42,7 @@ Los algoritmos de clustering buscan una partición $C = \{C_1, C_2, ..., C_k\}$ 
 * DBSCAN (Density-Based Spatial Clustering of Applications with Noise): Agrupa puntos que están densamente conectados, siendo muy bueno para encontrar clústeres de formas arbitrarias y detectar ruido.
 
 
-A continuación, se describen algunos algoritmos de clustering.
+El resto del documento describe algunos algoritmos de clustering y se prueban de manera práctica.
 
 ### K-Means (y variantes)
 
@@ -110,6 +110,59 @@ Particiones: {pd.Series(cluster_labels).value_counts().tolist()}
 
 ```
 
+#### Visualización
+```{python}
+from sklearn.decomposition import PCA
+
+principal_components = PCA(n_components=2).fit_transform(scaled_features)
+
+df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+
+# Añadir la columna de supervivencia para la visualización
+df_pca['survived'] = df_titanic['survived']
+df_pca['cluster_labels'] = cluster_labels
+```
+
+```{python}
+#| label: fig-clustering
+#| fig-caption: Visualización 2D del agrupamiento
+
+plt.figure(figsize=(10, 8))
+sns.scatterplot(
+    data=df_pca,
+    x='PC1',
+    y='PC2',
+    hue='cluster_labels', 
+    palette='viridis', # Esquema de colores
+    alpha=0.7 # Transparencia
+)
+plt.legend(title='Sobrevivió (clusters)', labels=['No', 'Sí'])
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+
+```
+
+Comparando con las etiquetas reales
+```{python}
+plt.figure(figsize=(10, 8))
+sns.scatterplot(
+    data=df_pca,
+    x='PC1',
+    y='PC2',
+    hue='survived', 
+    palette='viridis', # Esquema de colores
+    alpha=0.7 # Transparencia
+)
+plt.legend(title='Sobrevivió (true labels)', labels=['No', 'Sí'])
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+```
+
+#### Actividades
+
+- Replicar el ejercicio cambiando a la base de datos de `digits` y visualización con UMAP.
+- ¿Qué pasaría en diferentes valores de $k$ (`n_clusters`)?
+
 ### DBSCAN (Density-Based Spatial Clustering of Applications with Noise)
 
 Identifica clústeres como regiones densas de puntos en el espacio de datos, separadas por regiones de menor densidad. Es capaz de descubrir clústeres de formas arbitrarias y es robusto al ruido (outliers).
@@ -125,3 +178,91 @@ Se requieren una serie de hiperpárametros y conceptos para su explicación. Sea
 
 No requiere especificar $k$, descubre clústeres de formas arbitrarias, robusto a outliers (los etiqueta como ruido). Es sensible a los parámetros $\epsilon$ y _MinPts_ (que pueden ser difíciles de elegir, especialmente en datos de alta dimensión), no maneja bien clústeres con densidades muy diferentes. Hay otros algoritmos más modernos como HDBSCAN que pueden ser más robustos a estos problemas.
 
+```{python}
+from IPython.display import Markdown, display
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import DBSCAN
+from sklearn.metrics import silhouette_score, adjusted_rand_score
+import warnings
+
+df_titanic = sns.load_dataset('titanic')
+features = ['pclass', 'age', 'sibsp', 'parch', 'fare']
+df = df_titanic[features].copy()
+true_labels = df_titanic['survived'] # Estas son nuestras "etiquetas verdaderas" para el ARI
+
+df['age'].fillna(df['age'].median(), inplace=True) # imputación de datos (recordar secciones previas)
+```
+
+DBSCAN se basa en distancia, que por lo que también nos aseguramos de normalizar para que ninguna componente sea más pesada que otra:
+```{python}
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(df)
+```
+
+Ejecutamos
+```{python}
+eps = 0.5
+min_samples = 5
+
+dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+dbscan.fit(scaled_features)
+cluster_labels = dbscan.labels_ 
+```
+
+Ahora calculamos las medidas de desempeño
+```{python}
+sil = silhouette_score(scaled_features, cluster_labels)
+ari_score = adjusted_rand_score(true_labels, cluster_labels)
+
+Markdown(f"""
+
+Particiones: {pd.Series(cluster_labels).value_counts().tolist()}
+
+| nombre  |  valor  |
+|---------|---------|
+| coeficiente de silueta | {sil:.3f} |
+| adjusted rand index    | {ari_score:.3f} |
+""")
+
+```
+
+#### Visualización
+```{python}
+#| echo: false
+from sklearn.decomposition import PCA
+
+principal_components = PCA(n_components=2).fit_transform(scaled_features)
+
+df_pca = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+
+# Añadir la columna de supervivencia para la visualización
+df_pca['survived'] = df_titanic['survived']
+df_pca['cluster_labels'] = cluster_labels
+```
+
+```{python}
+#| label: fig-clustering-2
+#| fig-caption: Visualización 2D del agrupamiento
+
+plt.figure(figsize=(10, 8))
+sns.scatterplot(
+    data=df_pca,
+    x='PC1',
+    y='PC2',
+    hue='cluster_labels', 
+    palette='viridis', # Esquema de colores
+    alpha=0.7 # Transparencia
+)
+plt.legend(title='Sobrevivió (clusters)', labels=['No', 'Sí'])
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+
+```
+
+
+#### Actividades
+- Replicar el ejercicio pero trabajando sobre `digits` y ejecutando DBSCAN sobre una proyección 2D de UMAP.
+- Aplica DBSCAN para diferentes valores de `eps` y `min_sample`; explica como deberías escoger los valores correctos para un conjunto de datos.

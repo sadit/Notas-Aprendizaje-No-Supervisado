@@ -5,29 +5,28 @@ jupyter: python3
 
 ---
 
-A diferencia de **PCA (Análisis de Componentes Principales)**, las técnicas de **reducción de dimensionalidad no lineal** pueden capturar relaciones más complejas entre los datos; se suele involucrar una función de distancia o kernel para describir la relación entre dos elementos de una base de datos. Esta función de distancia captura la estructura del espacio mediante una matriz de afinidad o una gráfica de vecinos cercanos, que se cálcula en alta dimensión y se _replica_ en baja baja dimensión.
+A diferencia de _PCA (Análisis de Componentes Principales)_, las técnicas de _reducción de dimensionalidad no lineal_ pueden capturar relaciones más complejas entre los datos; se suele involucrar una función de distancia o kernel para describir la relación entre dos elementos de una base de datos. Esta función de distancia captura la estructura del espacio mediante una matriz de afinidad o una gráfica de vecinos cercanos, que se cálcula en alta dimensión y se _replica_ en baja baja dimensión.
 Ver @lee2007nonlinear para un tratado más extenso en el tema.
 
 ## Uniform Manifold Approximation and Projection (UMAP)
 
-UMAP es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la **geometría Riemanniana** y la **topología algebraica**.
+@mcinnes2018umap introduce UMAP, que es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE [ver @van2008visualizing], que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la geometría Riemanniana y la topología algebraica. 
 
 El algoritmo de UMAP se puede desglosar en dos fases principales:
 
-1.  **Construcción de una representación topológica fuzzy de alta dimensión:**
-    * Se presume que los datos están muestreados a partir de una **variedad (manifold) de Riemann** de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.
-    * **Grafo de k-vecinos:** Para cada punto $x_i$ en el espacio de alta dimensión, se identifican sus $k$ vecinos más cercanos ($k$ es el parámetro `n_neighbors`).
-    * **Complejo simplicial fuzzy:** A partir de estos vecinos, UMAP construye un **complejo simplicial fuzzy** (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos $x_i$ y $x_j$ se modela como una **probabilidad de conectividad** $p_{ij}$. 
+1.  Construcción de una representación topológica fuzzy de alta dimensión:
+    * Se presume que los datos están muestreados a partir de una __variedad (manifold) de Riemann__ de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.
+    * Grafo de k-vecinos: Para cada punto $x_i$ en el espacio de alta dimensión, se identifican sus $k$ vecinos más cercanos ($k$ es el parámetro `n_neighbors`).
+    * Complejo simplicial fuzzy: A partir de estos vecinos, UMAP construye un _complejo simplicial fuzzy_ (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos $x_i$ y $x_j$ se modela como una _probabilidad de conectividad_ $p_{ij}$. 
 
-2.  **Optimización de la incrustación de baja dimensión:**
-    * **Construcción de un grafo de baja dimensión:** Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades $q_{ij}$ que idealmente reflejan las $p_{ij}$ del espacio de alta dimensión. 
-    * **Función de costo:** UMAP minimiza una **función de costo de entropía cruzada binaria** (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:
+2.  Optimización de la incrustación de baja dimensión:
+    * Construcción de un grafo de baja dimensión: Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades $q_{ij}$ que idealmente reflejan las $p_{ij}$ del espacio de alta dimensión. 
+    * Función de costo: UMAP minimiza una _función de costo de entropía cruzada binaria_ (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:
         * Si dos puntos están conectados en alta dimensión ($p_{ij}$ es alta) pero no en baja ($q_{ij}$ es baja), hay una penalización fuerte. (Fuerzas atractivas)
         * Si dos puntos no están conectados en alta dimensión ($p_{ij}$ es baja) pero sí lo están en baja ($q_{ij}$ es alta), la penalización es menor. (Fuerzas repulsivas, gestionadas eficientemente por un muestreo negativo).
-    * **Optimización:** La minimización se realiza mediante **descenso de gradiente estocástico (SGD)**. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades $q_{ij}$ se acerquen lo más posible a las $p_{ij}$.
+    * Optimización: La minimización se realiza mediante _descenso de gradiente estocástico (SGD)_. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades $q_{ij}$ se acerquen lo más posible a las $p_{ij}$.
 
 ## Ejemplo
-
 
 ```{python}
 from IPython.display import Markdown, display

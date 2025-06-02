@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.6.42">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Eric S. Téllez">
+
+<title>Reducción de dimensión no lineal – UMAP – Aprendizaje no supervisado y visualización</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-a185852c63625fd9ffbdc57047c9a77e.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-a3c330d4d512490b2c17c3d7fed21a84.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Sin resultados",
+    "search-matching-documents-text": "documentos encontrados",
+    "search-copy-link-title": "Copiar el enlace en la búsqueda",
+    "search-hide-matches-text": "Ocultar resultados adicionales",
+    "search-more-match-text": "resultado adicional en este documento",
+    "search-more-matches-text": "resultados adicionales en este documento",
+    "search-clear-button-title": "Borrar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Buscar"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar docked">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top quarto-banner">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./03-umap.html">Reducción de dimensión no lineal – UMAP</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Buscar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<header id="title-block-header" class="quarto-title-block default page-columns page-full">
+  <div class="quarto-title-banner page-columns page-full">
+    <div class="quarto-title column-body">
+      <div class="quarto-title-block"><div><h1 class="title">Reducción de dimensión no lineal – UMAP</h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Código</button></div></div>
+                      </div>
+  </div>
+    
+  <div class="quarto-title-meta-author">
+    <div class="quarto-title-meta-heading">Autor/a</div>
+    <div class="quarto-title-meta-heading">Afiliación</div>
+    
+      <div class="quarto-title-meta-contents">
+      <p class="author"><a href="https://sadit.github.io">Eric S. Téllez</a> </p>
+    </div>
+    <div class="quarto-title-meta-contents">
+          <p class="affiliation">
+              INFOTEC Centro de Investigación e Innovación en Tecnologías de la Información y Comunicación
+            </p>
+        </div>
+    </div>
+
+  <div class="quarto-title-meta">
+
+        
+    
+      
+    </div>
+    
+  
+  </header><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation docked overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Aprendizaje no supervisado y visualización</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Buscar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Inicio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01-vis.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Uso de paquetería para ploteo</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02-pca.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Reducción de dimensionalidad – uso de componentes principales</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03-umap.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Reducción de dimensión no lineal – UMAP</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04-clustering.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Agrupamiento</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#uniform-manifold-approximation-and-projection-umap" id="toc-uniform-manifold-approximation-and-projection-umap" class="nav-link active" data-scroll-target="#uniform-manifold-approximation-and-projection-umap">Uniform Manifold Approximation and Projection (UMAP)</a></li>
+  <li><a href="#ejemplo" id="toc-ejemplo" class="nav-link" data-scroll-target="#ejemplo">Ejemplo</a>
+  <ul class="collapse">
+  <li><a href="#cómo-se-vería-con-pca-2d" id="toc-cómo-se-vería-con-pca-2d" class="nav-link" data-scroll-target="#cómo-se-vería-con-pca-2d">¿Cómo se vería con PCA 2D?</a></li>
+  <li><a href="#parametros-número-de-vecinos" id="toc-parametros-número-de-vecinos" class="nav-link" data-scroll-target="#parametros-número-de-vecinos">Parametros: número de vecinos</a></li>
+  </ul></li>
+  <li><a href="#criterios-prácticos-para-elegir-entre-pca-y-umap" id="toc-criterios-prácticos-para-elegir-entre-pca-y-umap" class="nav-link" data-scroll-target="#criterios-prácticos-para-elegir-entre-pca-y-umap">Criterios prácticos para elegir entre PCA y UMAP</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content quarto-banner-title-block" id="quarto-document-content">
+
+
+
+
+
+<p>A diferencia de <em>PCA (Análisis de Componentes Principales)</em>, las técnicas de <em>reducción de dimensionalidad no lineal</em> pueden capturar relaciones más complejas entre los datos; se suele involucrar una función de distancia o kernel para describir la relación entre dos elementos de una base de datos. Esta función de distancia captura la estructura del espacio mediante una matriz de afinidad o una gráfica de vecinos cercanos, que se cálcula en alta dimensión y se <em>replica</em> en baja baja dimensión. Ver <span class="citation" data-cites="lee2007nonlinear">Lee y Verleysen (<a href="#ref-lee2007nonlinear" role="doc-biblioref">2007</a>)</span> para un tratado más extenso en el tema.</p>
+<section id="uniform-manifold-approximation-and-projection-umap" class="level2">
+<h2 class="anchored" data-anchor-id="uniform-manifold-approximation-and-projection-umap">Uniform Manifold Approximation and Projection (UMAP)</h2>
+<p><span class="citation" data-cites="mcinnes2018umap">McInnes, Healy, y Melville (<a href="#ref-mcinnes2018umap" role="doc-biblioref">2018</a>)</span> introduce UMAP, que es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE <span class="citation" data-cites="van2008visualizing">(ver <a href="#ref-van2008visualizing" role="doc-biblioref">Van der Maaten y Hinton 2008</a>)</span>, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la geometría Riemanniana y la topología algebraica.</p>
+<p>El algoritmo de UMAP se puede desglosar en dos fases principales:</p>
+<ol type="1">
+<li>Construcción de una representación topológica fuzzy de alta dimensión:
+<ul>
+<li>Se presume que los datos están muestreados a partir de una <strong>variedad (manifold) de Riemann</strong> de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.</li>
+<li>Grafo de k-vecinos: Para cada punto <span class="math inline">\(x_i\)</span> en el espacio de alta dimensión, se identifican sus <span class="math inline">\(k\)</span> vecinos más cercanos (<span class="math inline">\(k\)</span> es el parámetro <code>n_neighbors</code>).</li>
+<li>Complejo simplicial fuzzy: A partir de estos vecinos, UMAP construye un <em>complejo simplicial fuzzy</em> (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos <span class="math inline">\(x_i\)</span> y <span class="math inline">\(x_j\)</span> se modela como una <em>probabilidad de conectividad</em> <span class="math inline">\(p_{ij}\)</span>.</li>
+</ul></li>
+<li>Optimización de la incrustación de baja dimensión:
+<ul>
+<li>Construcción de un grafo de baja dimensión: Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades <span class="math inline">\(q_{ij}\)</span> que idealmente reflejan las <span class="math inline">\(p_{ij}\)</span> del espacio de alta dimensión.</li>
+<li>Función de costo: UMAP minimiza una <em>función de costo de entropía cruzada binaria</em> (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:
+<ul>
+<li>Si dos puntos están conectados en alta dimensión (<span class="math inline">\(p_{ij}\)</span> es alta) pero no en baja (<span class="math inline">\(q_{ij}\)</span> es baja), hay una penalización fuerte. (Fuerzas atractivas)</li>
+<li>Si dos puntos no están conectados en alta dimensión (<span class="math inline">\(p_{ij}\)</span> es baja) pero sí lo están en baja (<span class="math inline">\(q_{ij}\)</span> es alta), la penalización es menor. (Fuerzas repulsivas, gestionadas eficientemente por un muestreo negativo).</li>
+</ul></li>
+<li>Optimización: La minimización se realiza mediante <em>descenso de gradiente estocástico (SGD)</em>. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades <span class="math inline">\(q_{ij}\)</span> se acerquen lo más posible a las <span class="math inline">\(p_{ij}\)</span>.</li>
+</ul></li>
+</ol>
+</section>
+<section id="ejemplo" class="level2">
+<h2 class="anchored" data-anchor-id="ejemplo">Ejemplo</h2>
+<div id="b314b946" class="cell" data-execution_count="1">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap </span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>estaremos usando la base de datos digits de digits escritos a mano más alta, en particular de imágenes en escala de grises de <span class="math inline">\(8 \times 8\)</span>, representadas como vectores de 64 dimensiones.</p>
+<div id="07293ac3" class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> datasets.load_digits()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(digits.DESCR)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>.. _digits_dataset:
+
+Optical recognition of handwritten digits dataset
+--------------------------------------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 1797
+    :Number of Attributes: 64
+    :Attribute Information: 8x8 image of integer pixels in the range 0..16.
+    :Missing Attribute Values: None
+    :Creator: E. Alpaydin (alpaydin '@' boun.edu.tr)
+    :Date: July; 1998
+
+This is a copy of the test set of the UCI ML hand-written digits datasets
+https://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits
+
+The data set contains images of hand-written digits: 10 classes where
+each class refers to a digit.
+
+Preprocessing programs made available by NIST were used to extract
+normalized bitmaps of handwritten digits from a preprinted form. From a
+total of 43 people, 30 contributed to the training set and different 13
+to the test set. 32x32 bitmaps are divided into nonoverlapping blocks of
+4x4 and the number of on pixels are counted in each block. This generates
+an input matrix of 8x8 where each element is an integer in the range
+0..16. This reduces dimensionality and gives invariance to small
+distortions.
+
+For info on NIST preprocessing routines, see M. D. Garris, J. L. Blue, G.
+T. Candela, D. L. Dimmick, J. Geist, P. J. Grother, S. A. Janet, and C.
+L. Wilson, NIST Form-Based Handprint Recognition System, NISTIR 5469,
+1994.
+
+|details-start|
+**References**
+|details-split|
+
+- C. Kaynak (1995) Methods of Combining Multiple Classifiers and Their
+  Applications to Handwritten Digit Recognition, MSc Thesis, Institute of
+  Graduate Studies in Science and Engineering, Bogazici University.
+- E. Alpaydin, C. Kaynak (1998) Cascading Classifiers, Kybernetika.
+- Ken Tang and Ponnuthurai N. Suganthan and Xi Yao and A. Kai Qin.
+  Linear dimensionalityreduction using relevance weighted LDA. School of
+  Electrical and Electronic Engineering Nanyang Technological University.
+  2005.
+- Claudio Gentile. A New Approximate Maximal Margin Classification
+  Algorithm. NIPS. 2000.
+
+|details-end|</code></pre>
+</div>
+</div>
+<p>El modelo UMAP se aprende y se usa para transformar la base de datos original de 784 dimensiones a solo dos. Las imagenes se ven como sigue:</p>
+<div id="334e8a90" class="cell" data-execution_count="3">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">1</span>, ncols<span class="op">=</span><span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, image, label <span class="kw">in</span> <span class="bu">zip</span>(axes, digits.images, digits.target):</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    ax.set_axis_off()</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    ax.imshow(image, cmap<span class="op">=</span>plt.cm.gray_r, interpolation<span class="op">=</span><span class="st">"nearest"</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"label: </span><span class="sc">%i</span><span class="st">"</span> <span class="op">%</span> label)</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co">#plt.matshow(digits.images[0])</span></span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-4-output-1.png" width="763" height="102" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Definición del modelo UMAP y transformación:</p>
+<div id="6b98c1c9" class="cell" data-execution_count="4">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Graficamos con <code>seaborn</code>:</p>
+<div id="ac125c1e" class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-6-output-1.png" width="596" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="cómo-se-vería-con-pca-2d" class="level3">
+<h3 class="anchored" data-anchor-id="cómo-se-vería-con-pca-2d">¿Cómo se vería con PCA 2D?</h3>
+<p>Esta pregunta se responderá comparando de manera práctica</p>
+<div id="2b8aa7a4" class="cell" data-execution_count="6">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(digits.data)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="co">#scaled_features = digits.data</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> model.fit_transform(scaled_features)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>pca_df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>pca_df[<span class="st">'target'</span>] <span class="op">=</span> digits[<span class="st">'target'</span>]</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>pca_df,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'target'</span>, <span class="co"># Colorea los puntos según si sobrevivieron o no</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-7-output-1.png" width="600" height="429" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="parametros-número-de-vecinos" class="level3">
+<h3 class="anchored">Parametros: número de vecinos</h3>
+<div id="26ed365a" class="cell" data-execution_count="7">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nn <span class="kw">in</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">1000</span>, <span class="dv">1797</span>]:</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/home/sadit/miniconda3/lib/python3.11/site-packages/sklearn/manifold/_spectral_embedding.py:273: UserWarning: Graph is not fully connected, spectral embedding may not work as expected.
+  warnings.warn(</code></pre>
+</div>
+<section id="n_neighbors3" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors3">n_neighbors=3</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-3.png" width="596" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors10" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors10">n_neighbors=10</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-5.png" width="587" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors15" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors15">n_neighbors=15</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-7.png" width="587" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors30" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors30">n_neighbors=30</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-9.png" width="596" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors50" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors50">n_neighbors=50</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-11.png" width="585" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors100" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors100">n_neighbors=100</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-13.png" width="585" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors300" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors300">n_neighbors=300</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-15.png" width="585" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors1000" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors1000">n_neighbors=1000</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-17.png" width="587" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/home/sadit/miniconda3/lib/python3.11/site-packages/umap/umap_.py:2462: UserWarning: n_neighbors is larger than the dataset size; truncating to X.shape[0] - 1
+  warn(</code></pre>
+</div>
+<section id="n_neighbors1797" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors1797">n_neighbors=1797</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-8-output-20.png" width="587" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Ahora veremos como actua el parámetro <code>min_dist</code></p>
+<div id="646718f5" class="cell" data-execution_count="8">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> min_dist <span class="kw">in</span> [<span class="fl">0.01</span>, <span class="fl">0.03</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.0</span>]:</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    nn <span class="op">=</span> <span class="dv">15</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>, min_dist<span class="op">=</span>min_dist).fit_transform(digits.data)</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">, min_dist=</span><span class="sc">{</span>min_dist<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>    plt.show()</span></code><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<section id="n_neighbors15-min_dist0.01" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors15-min_dist0.01">n_neighbors=15, min_dist=0.01</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-9-output-2.png" width="591" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors15-min_dist0.03" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors15-min_dist0.03">n_neighbors=15, min_dist=0.03</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-9-output-4.png" width="596" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors15-min_dist0.1" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors15-min_dist0.1">n_neighbors=15, min_dist=0.1</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-9-output-6.png" width="587" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors15-min_dist0.3" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors15-min_dist0.3">n_neighbors=15, min_dist=0.3</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-9-output-8.png" width="585" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+<section id="n_neighbors15-min_dist1.0" class="level2 cell-output cell-output-display cell-output-markdown">
+<h2 class="anchored" data-anchor-id="n_neighbors15-min_dist1.0">n_neighbors=15, min_dist=1.0</h2>
+</section>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="03-umap_files/figure-html/cell-9-output-10.png" width="601" height="449" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="criterios-prácticos-para-elegir-entre-pca-y-umap" class="level2">
+<h2 class="anchored" data-anchor-id="criterios-prácticos-para-elegir-entre-pca-y-umap">Criterios prácticos para elegir entre PCA y UMAP</h2>
+<ul>
+<li>Estructura</li>
+<li>Eficiencia</li>
+<li>Reproducibilidad</li>
+</ul>
+
+
+<!-- -->
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">Referencias</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-lee2007nonlinear" class="csl-entry" role="listitem">
+Lee, John A, y Michel Verleysen. 2007. <em>Nonlinear dimensionality reduction</em>. Springer Science &amp; Business Media.
+</div>
+<div id="ref-mcinnes2018umap" class="csl-entry" role="listitem">
+McInnes, Leland, John Healy, y James Melville. 2018. <span>«Umap: Uniform manifold approximation and projection for dimension reduction»</span>. <em>arXiv preprint arXiv:1802.03426</em>.
+</div>
+<div id="ref-van2008visualizing" class="csl-entry" role="listitem">
+Van der Maaten, Laurens, y Geoffrey Hinton. 2008. <span>«Visualizing data using t-SNE.»</span> <em>Journal of machine learning research</em> 9 (11).
+</div>
+</div></section></div></main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copiado");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copiado");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+  const viewSource = window.document.getElementById('quarto-view-source') ||
+                     window.document.getElementById('quarto-code-tools-source');
+  if (viewSource) {
+    const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+    viewSource.addEventListener("click", function(e) {
+      if (sourceUrl) {
+        // rstudio viewer pane
+        if (/\bcapabilities=\b/.test(window.location)) {
+          window.open(sourceUrl);
+        } else {
+          window.location.href = sourceUrl;
+        }
+      } else {
+        const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+        modal.show();
+      }
+      return false;
+    });
+  }
+  function toggleCodeHandler(show) {
+    return function(e) {
+      const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+      for (let i=0; i<detailsSrc.length; i++) {
+        const details = detailsSrc[i].parentElement;
+        if (show) {
+          details.open = true;
+        } else {
+          details.removeAttribute("open");
+        }
+      }
+      const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+      const fromCls = show ? "hidden" : "unhidden";
+      const toCls = show ? "unhidden" : "hidden";
+      for (let i=0; i<cellCodeDivs.length; i++) {
+        const codeDiv = cellCodeDivs[i];
+        if (codeDiv.classList.contains(fromCls)) {
+          codeDiv.classList.remove(fromCls);
+          codeDiv.classList.add(toCls);
+        } 
+      }
+      return false;
+    }
+  }
+  const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+  if (hideAllCode) {
+    hideAllCode.addEventListener("click", toggleCodeHandler(false));
+  }
+  const showAllCode = window.document.getElementById("quarto-show-all-code");
+  if (showAllCode) {
+    showAllCode.addEventListener("click", toggleCodeHandler(true));
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/sadit\.github\.io\/ALGO-IR");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Ejecutar el código</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="sourceCode" id="cb12" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Reducción de dimensión no lineal -- UMAP"</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span><span class="co"> html</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="an">jupyter:</span><span class="co"> python3</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>A diferencia de _PCA (Análisis de Componentes Principales)_, las técnicas de _reducción de dimensionalidad no lineal_ pueden capturar relaciones más complejas entre los datos; se suele involucrar una función de distancia o kernel para describir la relación entre dos elementos de una base de datos. Esta función de distancia captura la estructura del espacio mediante una matriz de afinidad o una gráfica de vecinos cercanos, que se cálcula en alta dimensión y se _replica_ en baja baja dimensión.</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>Ver @lee2007nonlinear para un tratado más extenso en el tema.</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">## Uniform Manifold Approximation and Projection (UMAP)</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a>@mcinnes2018umap introduce UMAP, que es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE <span class="co">[</span><span class="ot">ver @van2008visualizing</span><span class="co">]</span>, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la geometría Riemanniana y la topología algebraica. </span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>El algoritmo de UMAP se puede desglosar en dos fases principales:</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="ss">1.  </span>Construcción de una representación topológica fuzzy de alta dimensión:</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Se presume que los datos están muestreados a partir de una __variedad (manifold) de Riemann__ de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.</span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Grafo de k-vecinos: Para cada punto $x_i$ en el espacio de alta dimensión, se identifican sus $k$ vecinos más cercanos ($k$ es el parámetro <span class="in">`n_neighbors`</span>).</span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Complejo simplicial fuzzy: A partir de estos vecinos, UMAP construye un _complejo simplicial fuzzy_ (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos $x_i$ y $x_j$ se modela como una _probabilidad de conectividad_ $p_{ij}$. </span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="ss">2.  </span>Optimización de la incrustación de baja dimensión:</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Construcción de un grafo de baja dimensión: Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades $q_{ij}$ que idealmente reflejan las $p_{ij}$ del espacio de alta dimensión. </span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Función de costo: UMAP minimiza una _función de costo de entropía cruzada binaria_ (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a><span class="ss">        * </span>Si dos puntos están conectados en alta dimensión ($p_{ij}$ es alta) pero no en baja ($q_{ij}$ es baja), hay una penalización fuerte. (Fuerzas atractivas)</span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="ss">        * </span>Si dos puntos no están conectados en alta dimensión ($p_{ij}$ es baja) pero sí lo están en baja ($q_{ij}$ es alta), la penalización es menor. (Fuerzas repulsivas, gestionadas eficientemente por un muestreo negativo).</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="ss">    * </span>Optimización: La minimización se realiza mediante _descenso de gradiente estocástico (SGD)_. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades $q_{ij}$ se acerquen lo más posible a las $p_{ij}$.</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="fu">## Ejemplo</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> IPython.display <span class="im">import</span> Markdown, display</span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn <span class="im">import</span> datasets</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> umap </span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a>estaremos usando la base de datos digits de digits escritos a mano más alta, en particular de imágenes en escala de grises de $8 \times 8$, representadas como vectores de 64 dimensiones. </span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a>digits <span class="op">=</span> datasets.load_digits()</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(digits.DESCR)</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a>El modelo UMAP se aprende y se usa para transformar la base de datos original de 784 dimensiones a solo dos. Las imagenes se ven como sigue:</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a>_, axes <span class="op">=</span> plt.subplots(nrows<span class="op">=</span><span class="dv">1</span>, ncols<span class="op">=</span><span class="dv">10</span>, figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, image, label <span class="kw">in</span> <span class="bu">zip</span>(axes, digits.images, digits.target):</span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a>    ax.set_axis_off()</span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a>    ax.imshow(image, cmap<span class="op">=</span>plt.cm.gray_r, interpolation<span class="op">=</span><span class="st">"nearest"</span>)</span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="st">"label: </span><span class="sc">%i</span><span class="st">"</span> <span class="op">%</span> label)</span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="co">#plt.matshow(digits.images[0])</span></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a>Definición del modelo UMAP y transformación:</span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span><span class="dv">15</span>, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a>Graficamos con <span class="in">`seaborn`</span>:</span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a><span class="fu">### ¿Cómo se vería con PCA 2D?</span></span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a>Esta pregunta se responderá comparando de manera práctica</span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.decomposition <span class="im">import</span> PCA</span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a>scaled_features <span class="op">=</span> scaler.fit_transform(digits.data)</span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a><span class="co">#scaled_features = digits.data</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> PCA(n_components<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>principal_components <span class="op">=</span> model.fit_transform(scaled_features)</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>pca_df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>principal_components, columns<span class="op">=</span>[<span class="st">'PC1'</span>, <span class="st">'PC2'</span>])</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>pca_df[<span class="st">'target'</span>] <span class="op">=</span> digits[<span class="st">'target'</span>]</span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>sns.scatterplot(</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>    data<span class="op">=</span>pca_df,</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">'PC1'</span>,</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">'PC2'</span>,</span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>    hue<span class="op">=</span><span class="st">'target'</span>, <span class="co"># Colorea los puntos según si sobrevivieron o no</span></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    palette<span class="op">=</span><span class="st">'viridis'</span>, <span class="co"># Esquema de colores</span></span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a>    alpha<span class="op">=</span><span class="fl">0.7</span> <span class="co"># Transparencia</span></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a><span class="fu">### Parametros: número de vecinos</span></span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> nn <span class="kw">in</span> [<span class="dv">3</span>, <span class="dv">10</span>, <span class="dv">15</span>, <span class="dv">30</span>, <span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">1000</span>, <span class="dv">1797</span>]:</span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>).fit_transform(digits.data)</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a>Ahora veremos como actua el parámetro <span class="in">`min_dist`</span></span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> min_dist <span class="kw">in</span> [<span class="fl">0.01</span>, <span class="fl">0.03</span>, <span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.0</span>]:</span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>    nn <span class="op">=</span> <span class="dv">15</span></span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>    emb <span class="op">=</span> umap.UMAP(metric<span class="op">=</span><span class="st">"euclidean"</span>, n_neighbors<span class="op">=</span>nn, n_components<span class="op">=</span><span class="dv">2</span>, n_jobs<span class="op">=</span><span class="dv">16</span>, min_dist<span class="op">=</span>min_dist).fit_transform(digits.data)</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>    display(Markdown(<span class="ss">f"## n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">, min_dist=</span><span class="sc">{</span>min_dist<span class="sc">}</span><span class="ss">"</span>))</span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> pd.DataFrame(data<span class="op">=</span>emb, columns<span class="op">=</span>[<span class="st">"x"</span>, <span class="st">"y"</span>])</span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">"target"</span>] <span class="op">=</span> digits.target</span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>    sns.scatterplot(x<span class="op">=</span><span class="st">"x"</span>, y<span class="op">=</span><span class="st">"y"</span>,</span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a>        hue<span class="op">=</span><span class="st">"target"</span>, palette<span class="op">=</span><span class="st">'viridis'</span>,</span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a>        alpha<span class="op">=</span><span class="fl">0.7</span>, data<span class="op">=</span>df)</span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>    plt.title(<span class="ss">f"n_neighbors=</span><span class="sc">{</span>nn<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>    plt.show()</span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a><span class="fu">## Criterios prácticos para elegir entre PCA y UMAP</span></span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Estructura</span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Eficiencia</span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Reproducibilidad</span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a></span>
+</code><button title="Copiar al portapapeles" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></pre></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p><a href="http://creativecommons.org/licenses/by-sa/4.0/"><img src="https://i.creativecommons.org/l/by-sa/4.0/80x15.png" class="img-fluid"></a> <br> Esta obra está bajo una <a href="http://creativecommons.org/licenses/by-sa/4.0/">Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional</a></p>
+</div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
