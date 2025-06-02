@@ -37,12 +37,12 @@ format:
     toc: true
     code-tools: true
     echo: true
-  pdf:
-    documentclass: scrbook
-    echo: true
-    toc: true
-    colorlinks: true
-    papersize: letter
+    #  pdf:
+    #    documentclass: scrbook
+    #    echo: true
+    #    toc: true
+    #    colorlinks: true
+    #    papersize: letter
 
 title-block-banner: true
 highlight-style: pygments
