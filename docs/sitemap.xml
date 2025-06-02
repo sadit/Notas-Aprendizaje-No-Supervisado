@@ -1,36 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://sadit.github.io/ALGO-IR/clustering.html</loc>
-    <lastmod>2025-06-02T21:21:46.926Z</lastmod>
-  </url>
-  <url>
-    <loc>https://sadit.github.io/ALGO-IR/umap.html</loc>
-    <lastmod>2025-06-02T22:11:43.553Z</lastmod>
-  </url>
-  <url>
-    <loc>https://sadit.github.io/ALGO-IR/index.html</loc>
-    <lastmod>2025-06-01T01:44:17.257Z</lastmod>
-  </url>
-  <url>
-    <loc>https://sadit.github.io/ALGO-IR/vis.html</loc>
-    <lastmod>2025-05-31T12:58:02.203Z</lastmod>
-  </url>
-  <url>
-    <loc>https://sadit.github.io/ALGO-IR/pca.html</loc>
-    <lastmod>2025-06-01T02:04:43.638Z</lastmod>
-  </url>
-  <url>
-    <loc>https://sadit.github.io/ALGO-IR/Interactive-1.html</loc>
-    <lastmod>2025-06-01T02:14:11.320Z</lastmod>
+    <loc>https://sadit.github.io/ALGO-IR/04-clustering.html</loc>
+    <lastmod>2025-06-02T22:19:57.274Z</lastmod>
   </url>
   <url>
     <loc>https://sadit.github.io/ALGO-IR/02-pca.html</loc>
     <lastmod>2025-06-02T22:27:49.906Z</lastmod>
   </url>
   <url>
-    <loc>https://sadit.github.io/ALGO-IR/04-clustering.html</loc>
-    <lastmod>2025-06-02T22:19:57.274Z</lastmod>
+    <loc>https://sadit.github.io/ALGO-IR/index.html</loc>
+    <lastmod>2025-06-01T01:44:17.257Z</lastmod>
+  </url>
+  <url>
+    <loc>https://sadit.github.io/ALGO-IR/01-vis.html</loc>
+    <lastmod>2025-05-31T12:58:02.203Z</lastmod>
   </url>
   <url>
     <loc>https://sadit.github.io/ALGO-IR/03-umap.html</loc>
