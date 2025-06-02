@@ -1,0 +1,231 @@
+---
+title: "Uso de paquetería para ploteo"
+format: html
+jupyter: python3
+
+---
+
+Una parte importante del análisis es la gráficación de resultados, nos permite obtener información visual sobre relaciones que nos permitirán comprender información de un problema.
+
+En python podemos encontrar una múltitud de paquetes nos ayudan a graficar resultados, con diversas recetas diseñadas para mejorar la apreciación de los mismos en diferentes dominios de aplicación.
+
+En este curso revisaremos dos paquetes:
+
+- `pyplot`: basado en `matplotlib` pero diseñado para tener un _look & feel_ de MATLAB.
+- `seaborn`: de nueva cuenta se basa en `matplotlib` pero esta diseñado para trabajar con estructuras de datos de `Pandas`, y permite crear gráficos estadísticos.
+
+
+Sitios recomendatos para aprender sobre matplotlib y seaborn:
+
+- <https://matplotlib.org/stable/tutorials/pyplot.html>
+- <https://seaborn.pydata.org/tutorial/introduction.html>
+
+## Creación de gráficas
+
+La figura @fig-pyplot-1 muestra una gráfica de una curva. Observese el código, en particular como se indican los argumentos
+
+```{python}
+#| label: fig-pyplot-1
+#| fig-cap: Una función cuadrada con etiquetas a los lados
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+plt.plot(np.arange(0, 10, 0.1)**2)
+plt.ylabel('una curva')
+plt.xlabel('x')
+plt.legend('x**2')
+plt.show()
+
+```
+
+Es posible notar que se le dieron los valores en el _eje_ $y$, y que infirió los valores en $x$; esto es cómodo, aunque muchas veces deberíamos escoger lo forma más prolija pero precisa de @fig-pyplot-2:
+
+```{python}
+#| label: fig-pyplot-2
+#| fig-cap: Una función cuadrada con etiquetas a los lados (v2)
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.arange(0, 10, 0.1)
+plt.plot(x, x**2)
+plt.ylabel('una curva')
+plt.xlabel('x')
+plt.legend('x**2')
+plt.show()
+
+```
+
+Note como el rango de la función ahora coincide con los datos que la originaron.
+
+Muchas veces es buena idea tener un buen balance entre expresividad y cantidad de código, como en @fig-pyplot-3
+
+```{python}
+#| label: fig-pyplot-3
+#| fig-cap: Definición compacta de varias curvas
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.arange(0, 10, 0.1)
+plt.plot(x, x, 'g-',  x, x**2, 'r--', x, x**3, 'b^')
+plt.ylabel('curvas')
+plt.xlabel('x')
+plt.title('diferentes ordenes de crecimiento')
+plt.show()
+
+```
+
+este es un estilo compacto heredado de MATLAB, pero no hay que preocuparse de lo intrincado de la definición y descripción de lo que se le solicta a `pyplot`, ya que cuenta con una extensa documentación que puede ser consultada para ver muchos más detalles.
+
+Hasta ahora, hemos visto los métodos `plot` y `scatter`; pero también otras funciones muy útiles como es el caso de los histogramas, ver @fig-hist.
+
+```{python}
+#| label: fig-hist
+#| fig-cap: Histograma
+#| 
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = np.random.randn(5000)
+
+# the histogram of the data
+plt.hist(data, 20, density=True, alpha=0.5)
+
+plt.xlabel('x')
+plt.ylabel('prob')
+plt.axis([-4, 4, 0, 0.5])
+plt.grid(True)
+plt.show()
+```
+
+Muchas veces es necesario separar las figuras en dos o más gráficas, esto se logra de manera explícita controlado el _layout_ como se muestra en @fig-layout. Este ejemplo fue tomado del tutorial de `pyplot`.
+
+```{python}
+#| label: fig-layout
+#| fig-cap: Gráfica con sub-figuras
+#| 
+import numpy as np
+import matplotlib.pyplot as plt
+
+def f(t):
+    return np.cos(2*np.pi*t)
+
+t1 = np.arange(0.0, 5.0, 0.1)
+t2 = np.arange(0.0, 5.0, 0.02)
+
+plt.figure()
+plt.subplot(211)
+plt.plot(t1, f(t1), 'bo', t2, f(t2), 'k')
+
+plt.subplot(212)
+plt.plot(t2, np.cos(2*np.pi*t2), 'r--')
+plt.show()
+```
+
+Notesé como se índican los múltiples subplots, el número codifica un _layout_ de malla, i.e., _número de filas_, _número de columnas_, e _índice_ del subplot (contando de izquierda a derecha y de arriba a abajo).
+
+## Gráficando datos en forma de tabla
+
+Cuando se tienen datos relacionados a manera de tabla, es posible usar una versión del API que simplifica aún más la creación de figuras:
+
+
+```{python}
+#| label: fig-st-1
+#| fig-cap: Las estructuras de datos tipo tabla pueden usarse simplificando las gráficas
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.arange(0, 10, 0.2)
+data = {
+    'x': x,
+    'cuadrada': x**2,
+    'color': np.random.randint(0, 10, len(x)),
+    'area': (np.sin(x) + 1.1) * 15,
+}
+
+
+plt.scatter('x', 'cuadrada', c='color', s='area', data=data)
+plt.ylabel('$x^2$')
+plt.xlabel('$x$')
+plt.show()
+
+```
+
+Una manera más integrada de usar usar tablas es `seaborn``. @fig-sb-tips muestra un ejemplo del uso de `seaborn` con la tabla `tips`, incluida en ese mismo paquete.
+
+```{python}
+#| label: fig-sb-tips
+#| fig-cap: Las estructuras de datos tipo tabla pueden usarse simplificando las gráficas
+
+import numpy as np
+import seaborn as sns
+
+sns.set_theme()
+tips = sns.load_dataset("tips")
+print(tips)
+
+sns.relplot(
+    data=tips,
+    x="total_bill", y="tip", col="time", 
+    hue="smoker", style="smoker", size="size",
+)
+```
+
+`relplot` permite definir una malla de subfiguras fácilmente usando una columna como indicador de columna y/o filas.
+ 
+El siguiente ejemplo es un poco más elaborado y usa la base de datos de `titanic`:
+
+```{python}
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+df_titanic = sns.load_dataset('titanic')
+
+df_titanic.head()
+```
+
+```{python}
+df_titanic.info()
+```
+
+gráfica: relación entre edad, tarifa y supervivencia
+```{python}
+plt.figure(figsize=(10, 6)) 
+sns.scatterplot(data=df_titanic, x='age', y='fare', hue='survived', alpha=0.6)
+plt.title('Edad, tarifa y supervivencia')
+plt.xlabel('Edad')
+plt.ylabel('Tarifa pagada')
+plt.legend(title='¿Quienes sobrevivieron?')
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+```
+
+Ahora, veremos la distribución de edad por tipo de supervivencia
+```{python}
+plt.figure(figsize=(10, 6))
+sns.histplot(data=df_titanic, x='age', hue='survived', multiple='stack', bins=20, kde=True)
+plt.title('Distribución de Edad')
+plt.xlabel('Edad')
+plt.ylabel('Número de pasajeros')
+plt.legend(title='¿Sobrevivió?', labels=['No', 'Sí'])
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+```
+
+Otro ejemplo: ¿La clase influyó en la supervivencia? Gráfico de barras de supervivencia por clase de pasajero 
+
+```{python}
+# --- 
+plt.figure(figsize=(8, 5))
+sns.barplot(data=df_titanic, x='pclass', y='survived') # ci=None para no mostrar barras de error
+plt.title('Tasa de supervivencia por clase de pasajero')
+plt.xlabel('Clase de Pasajero')
+plt.ylabel('Tasa de Supervivencia')
+plt.xticks(ticks=[0, 1, 2], labels=['Primera', 'Segunda', 'Tercera'])
+plt.grid(axis='y', linestyle='--', alpha=0.7)
+plt.show()
+```

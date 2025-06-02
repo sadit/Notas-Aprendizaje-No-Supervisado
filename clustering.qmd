@@ -1,0 +1,127 @@
+---
+title: "Agrupamiento"
+format: html
+jupyter: python3
+
+---
+
+
+Los algoritmos de clustering (o agrupamiento) son una clase fundamental de técnicas de aprendizaje no supervisado en el campo del Machine Learning y la Ciencia de Datos. Su propósito principal es organizar un conjunto de datos en grupos de manera que los elementos dentro de un mismo grupo sean más similares entre sí que con respecto a los elementos de otros grupos.
+
+### ¿Para qué sirven?
+
+Los algoritmos de clustering son herramientas poderosas para descubrir patrones y para estructurar datos sin etiquetas. Algunas de sus aplicaciones posibles:
+
+1.  Análisis exploratorio de datos (EDA).
+2.  Detección de valores atípicos (outliers).
+3.  Organización y resumen de información.
+4.  Compresión de datos.
+
+### Medidas de la calidad de agrupamiento
+
+Existen muchas medidas de desempeño para clustering, solo en la versión estable de _sklearn_ se listan 9 <https://scikit-learn.org/stable/modules/clustering.html#clustering-performance-evaluation>. Cada una de ellas se ajusta a las diferentes necesidades del problema. En este curso nos enfocaremos en dos:
+
+
+- El _coeficiente de silueta_ es una medida interna, lo que significa que no requiere conocer las etiquetas verdaderas de los datos, sino que se basa únicamente en la estructura inherente de los clústeres formados por el algoritmo. Mide qué tan similar es un objeto (punto de datos) a su propio clúster en comparación con otros clústeres. Para cada punto de datos, calcula una puntuación que indica la cohesión del punto dentro de su clúster y la separación de ese punto con respecto a los clústeres vecinos. El coeficiente de silueta global para todo el agrupamiento es el promedio de los coeficientes de silueta de todos los puntos de datos del conjunto. Ver @wiki-silhouette-coefficient para más detalles.
+    * Varia entre -1 y 1
+    * Un coeficiente de silueta cercano a 1 sugiere que los clustering es denso y bien separado.
+    * Un coeficiente de silueta cercano a -1 sugiere que los grupos están superpuestos, son muy densos o que la asignación no es buena.
+    * En el paquete `sklearn` lo podemos encontrar en `sklearn.metrics` función silhouette_score.
+- El _Índice de rand ajustado (Adjusted Rand Index - ARI)_ es una métrica que requiere las etiquetas de clase verdaderas o de referencia (ground truth). El ARI cuantifica el grado de concordancia entre las etiquetas de clúster generadas por un algoritmo de agrupamiento y las etiquetas de clase preexistentes de los datos. Ver @wiki-adjusted-rand-index para más detalles.
+    * Varia entre 0 y 1.
+    * Valores cercanos a 0 van por una distribución aleatoria entre las partición predicha y la verdadera.
+    * Valores cercanos a 1 van indican la concordancia entre las partición predicha y la verdadera.
+    * En el paquete `sklearn` lo podemos encontrar en `sklearn.metrics` función `adjusted_rand_score`.
+
+
+## El problema de agrupamiento
+
+Los algoritmos de clustering buscan una partición $C = \{C_1, C_2, ..., C_k\}$ de un conjunto de datos $X = \{x_1, x_2, ..., x_n\}$, donde $x_i \in \mathbb{R}^d$, tal que los puntos dentro de cada clúster $C_j$ son _similares_ y los puntos de diferentes clústeres son _disímiles_. La noción de similitud se define mediante una métrica de distancia (e.g., Euclidiana, Manhattan, Mahalanobis) o una función de similitud (e.g., similitud coseno). Algunos ejemplos prototipicos son los siguientes:
+
+* K-Means: Intenta dividir los datos en un número $k$ predefinido de clústeres, asignando cada punto al centroide del clúster más cercano.
+* DBSCAN (Density-Based Spatial Clustering of Applications with Noise): Agrupa puntos que están densamente conectados, siendo muy bueno para encontrar clústeres de formas arbitrarias y detectar ruido.
+
+
+A continuación, se describen algunos algoritmos de clustering.
+
+### K-Means (y variantes)
+
+Es un algoritmo de clustering que busca particionar la base de datos y minimizar la suma de cuadrados de las distancias entre cada punto y el centroide de su clúster asignado. Asume grupos de forma esférica y tamaño similar.
+
+Basado en el algoritmo de Expectation-Maximization - EM o, algoritmo de Lloyd @wiki-Lloyd:
+
+1.  Inicialización: Se seleccionan $k$ centroides iniciales aleatoriamente de los puntos de datos o mediante estrategias más sofisticadas, e.g., K-Means++ o k-centers.
+2.  Asignación a centroides cercanos (expectation): Cada punto de datos $x_i$ se asigna al clúster cuyo centroide $\mu_j$ es el más cercano, según la métrica de distancia seleccionada (comúnmente Euclidiana). La asignación se basa en la función de costo:
+    $$J = \sum_{j=1}^{k} \sum_{x_i \in C_j} \|x_i - \mu_j\|^2$$
+3.  Actualización de centros (maximization): Los centroides de cada clúster se recalculan como la media de todos los puntos asignados a ese clúster:
+    $$\mu_j = \frac{1}{|C_j|} \sum_{x_i \in C_j} x_i$$
+4.  Convergencia: Los pasos 2 y 3 se repiten iterativamente hasta que la asignación de clústeres ya no cambia, la suma de cuadrados de las distancias se minimiza, o se alcanza un número máximo de iteraciones.
+
+Es rápido y escalable para grandes datasets, fácil de implementar y entender. Sin embargo, se debe tener en cuenta que es sensible a la inicialización de los centroides, requiere que $k$ sea preespecificado, no maneja bien clústeres de formas no esféricas o densidades variables, y es sensible a outliers.
+
+Ejemplo:
+
+```{python}
+from IPython.display import Markdown, display
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, adjusted_rand_score
+import warnings
+
+df_titanic = sns.load_dataset('titanic')
+features = ['pclass', 'age', 'sibsp', 'parch', 'fare']
+df_kmeans = df_titanic[features].copy()
+true_labels = df_titanic['survived'] # Estas son nuestras "etiquetas verdaderas" para el ARI
+
+df_kmeans['age'].fillna(df_kmeans['age'].median(), inplace=True) # imputación de datos (recordar secciones previas)
+```
+
+K-means es sensible a la escala, por lo que nos aseguramos de normalizar
+```{python}
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(df_kmeans)
+```
+
+Ahora, aplicamos K-Means con 2 clusters
+```{python}
+n_clusters = 2
+kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init=10)
+kmeans.fit(scaled_features)
+cluster_labels = kmeans.labels_ # Etiquetas de clúster generadas por K-Means
+```
+
+Ahora calculamos las medidas de desempeño
+```{python}
+sil = silhouette_score(scaled_features, cluster_labels)
+ari_score = adjusted_rand_score(true_labels, cluster_labels)
+
+Markdown(f"""
+
+Particiones: {pd.Series(cluster_labels).value_counts().tolist()}
+
+| nombre  |  valor  |
+|---------|---------|
+| coeficiente de silueta | {sil:.3f} |
+| adjusted rand index    | {ari_score:.3f} |
+""")
+
+```
+
+### DBSCAN (Density-Based Spatial Clustering of Applications with Noise)
+
+Identifica clústeres como regiones densas de puntos en el espacio de datos, separadas por regiones de menor densidad. Es capaz de descubrir clústeres de formas arbitrarias y es robusto al ruido (outliers).
+
+Se requieren una serie de hiperpárametros y conceptos para su explicación. Sea $\epsilon$ el radio máximo para considerar dos puntos como vecinos. _MinPts_ el número mínimo de puntos requeridos para formar una región densa. 
+
+1.  Se selecciona un punto de datos aleatorio que no ha sido visitado.
+2.  Se recuperan todos sus vecinos dentro de $\epsilon$.
+3.  Si el número de vecinos es menor que _MinPts_, el punto se etiqueta como ruido (potencialmente, hasta que un punto central lo alcance).
+4.  Si el número de vecinos es mayor o igual a _MinPts_, el punto es un punto central y se inicia un nuevo clúster. Todos sus vecinos dentro de $\epsilon$ se añaden al clúster (si no están ya asignados a otro clúster o marcados como ruido).
+5.  Para cada nuevo punto añadido al clúster (especialmente si es un punto central), el proceso de expansión continúa recursivamente. Los puntos fronterizos se incluyen en el clúster pero no expanden el clúster por sí mismos.
+6.  El proceso se repite hasta que todos los puntos han sido visitados.
+
+No requiere especificar $k$, descubre clústeres de formas arbitrarias, robusto a outliers (los etiqueta como ruido). Es sensible a los parámetros $\epsilon$ y _MinPts_ (que pueden ser difíciles de elegir, especialmente en datos de alta dimensión), no maneja bien clústeres con densidades muy diferentes. Hay otros algoritmos más modernos como HDBSCAN que pueden ser más robustos a estos problemas.
+

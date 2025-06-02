@@ -1,0 +1,158 @@
+---
+title: "Reducción de dimensionalidad -- uso de componentes principales"
+format: html
+jupyter: python3
+
+---
+
+La **reducción de dimensionalidad** es una técnica fundamental en el campo del aprendizaje automático y la ciencia de datos, cuyo objetivo principal es **disminuir el número de características (o dimensiones) en un conjunto de datos** sin perder la información más relevante o significativa.
+
+### ¿Por qué es necesaria la reducción de dimensionalidad?
+
+1.  Maldición de la dimensionalidad.
+2.  Complejidad computacional.
+3.  Evitar sobreajuste (overfitting).
+4.  Visualización de datos.
+
+### Algunas técnicas de reducción de dimensionalidad:
+
+Existen dos categorías principales:
+
+1.  **Selección de características (feature selection):** elegir un subconjunto de las características originales que se consideran más relevantes, eliminando las demás directamente. Se puede usar por ejemplo para la eliminación de características con baja varianza, o la deduplicación de características con alta correlación.
+
+2.  **Extracción de características (feature extraction):** construir o proyectar características a otro espacio de menor dimensión. Por ejemplo:
+    *  Análisis de componentes principales (PCA - Principal Component Analysis):** Transforma las características originales en un nuevo conjunto de _componentes principales_ que son ortogonales entre sí y capturan la mayor cantidad de varianza posible de los datos originales.
+    * **t-Distributed Stochastic Neighbor Embedding (t-SNE):** Una técnica no lineal excelente para la visualización de datos de alta dimensión, ya que busca preservar las relaciones de similitud entre puntos en un espacio de menor dimensión.
+    * **UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction:** Es un caso especial de t-SNE que con algunos supuestos, lo hace mucho más eficiente.
+    * **Autoencoders:** Redes neuronales que aprenden a comprimir los datos de entrada en una representación de menor dimensión y luego reconstruirlos a partir de esa representación.
+
+## Análisis de Componentes Principales (PCA)
+
+PCA transforma un conjunto de datos con múltiples variables correlacionadas en un nuevo conjunto de variables no correlacionadas, denominadas **componentes principales**, que retienen la mayor parte de la varianza (información) del conjunto de datos original, pero en un espacio de menor dimensión.
+
+### Procedimiento
+
+Conceptualmente, PCA busca identificar las direcciones de máxima variabilidad en los datos. Operacionalmente, el proceso se desglosa en los siguientes pasos:
+
+1.  **Estandarización de las componentes:** Dada la sensibilidad de PCA a la escala de las variables, es imperativo **estandarizar** los datos. Esto implica transformar cada variable para que tenga una media de cero y una desviación estándar de uno. Este paso asegura que las variables con mayores rangos de valores no dominen indebidamente el cálculo de las componentes.
+
+2.  **Cálculo de la matriz de covarianza (o correlación):** Se construye la matriz de covarianza (o la matriz de correlación, si los datos fueron previamente estandarizados), la cual cuantifica la relación lineal entre cada par de variables. Esta matriz es crucial porque la varianza y las covarianzas son los insumos para determinar las direcciones de mayor variabilidad.
+
+3.  **Computación de vectores y valores propios (eigenvectores y eigenvalores):**
+    * **Eigenvectores:** Representan las **direcciones (ejes) de máxima varianza** en el espacio de los datos. Estos eigenvectores son las **componentes principales**. Son ortogonales entre sí, lo que asegura que cada componente capture una dimensión de variabilidad independiente de las demás.
+    * **Eigenvalores:** Cada eigenvector está asociado a un eigenvalor, que **cuantifica la cantidad de varianza explicada** por la componente principal correspondiente. Un eigenvalor más grande indica que la componente asociada captura una mayor proporción de la varianza total de los datos.
+
+4.  **Selección de los componentes Principales:** Los eigenvectores se ordenan descendentemente según sus autovalores. La primera componente principal es la que explica la mayor varianza, la segunda la siguiente mayor varianza, y así sucesivamente. 
+
+5.  **Proyección:** Finalmente, los datos originales se proyectan sobre el subespacio definido por las componentes principales seleccionadas. Esta transformación genera un nuevo conjunto de datos de menor dimensionalidad, donde cada nueva variable (componente principal) es una combinación lineal de las características originales.
+
+### Aplicaciones de PCA
+
+* Reducción de dimensionalidad.
+* Visualización de datos de alta dimensionalidad.
+* Reducción de ruido.
+
+### Limitaciones
+
+* Es un método lineal.
+* Interpretación.
+* Sensibilidad a la escala.
+
+## Ejemplos
+
+```{python}
+
+from IPython.display import Markdown
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+import numpy as np
+
+df_titanic = sns.load_dataset('titanic')
+
+df_titanic.head(10)
+```
+
+
+Ya cargamos la base de datos, ahora seleccionamos algunas de las variables numéricas para crear el modelo PCA:
+
+- `pclass`: clase del pasaje
+- `age`: edad
+- `sibsp`: hermanos/cónyuges a bordo
+- `parch`: padres/hijos a bordo
+- `fare`: tarifa pagada
+
+Recuerda que debemos estandarizar las variables, imputar si es necesario
+
+```{python}
+df_titanic.isnull().sum()
+```
+
+ahora sí
+```{python}
+F = ['pclass', 'age', 'sibsp', 'parch', 'fare']
+df_pca = df_titanic[F].copy()
+df_pca['age'].fillna(df_pca['age'].median(), inplace=True)
+```
+
+Cómo PCA es sensible a la escala, es crucial estandarizar los datos.
+```{python}
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(df_pca)
+```
+
+Crearemos un modelo de PCA para proyectar a 2 dimensiones, excelente para plotear
+```{python}
+model = PCA(n_components=2)
+principal_components = model.fit_transform(scaled_features)
+
+pca_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+
+# Añadir la columna de supervivencia para la visualización
+pca_df['survived'] = df_titanic['survived']
+
+pca_df.head(5)
+```
+
+Ahora si podemos plotear en 2D la proyección de las 5 componentes originales
+
+```{python}
+#| label: fig-pca-1
+#| fig-caption: Visualización 2D de 5 variables de la base de datos _titanic_
+
+plt.figure(figsize=(10, 8))
+sns.scatterplot(
+    data=pca_df,
+    x='PC1',
+    y='PC2',
+    hue='survived', # Colorea los puntos según si sobrevivieron o no
+    palette='viridis', # Esquema de colores
+    alpha=0.7 # Transparencia
+)
+plt.title('Proyección 2D con PCA para la base de datos de titanic')
+plt.xlabel(f'Componente Principal 1 ({model.explained_variance_ratio_[0]*100:.2f}% de varianza)')
+plt.ylabel(f'Componente Principal 2 ({model.explained_variance_ratio_[1]*100:.2f}% de varianza)')
+plt.legend(title='Sobrevivió', labels=['No', 'Sí'])
+plt.grid(True, linestyle='--', alpha=0.6)
+plt.show()
+```
+
+Si el objetivo no es visualizar, conocel la varianza acumulada es muy útil para decidir cuántas componentes se deben utilizar; claramente, esta selección tiene implicaciones en la fidelidad que se tendrá entre los datos originales y el modelo PCA, y suele estar guiado por consideraciones prácticas.
+
+```{python}
+#| label: fig-pca-explained-variance
+#| fig-cation: Varianza explicada por componentes
+
+model = PCA(n_components=5)
+principal_components = model.fit_transform(scaled_features)
+
+plt.figure(figsize=(8, 5))
+plt.plot(range(1, len(model.explained_variance_ratio_) + 1), model.explained_variance_ratio_.cumsum(), marker='o', linestyle='--')
+plt.title('Varianza acumulada explicada por componentes principales')
+plt.xlabel('Número de componentes principales')
+plt.ylabel('Varianza acumulada explicada')
+plt.grid(True, linestyle='--', alpha=0.7)
+plt.show()
+```

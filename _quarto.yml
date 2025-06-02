@@ -1,0 +1,54 @@
+lang: es
+quarto-required: ">= 1.6"
+
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Aprendizaje no supervisado y visualización"
+  site-url: https://sadit.github.io/ALGO-IR
+  repo-url: https://github.com/sadit/ALGO-IR
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - text: "Inicio"
+        href: index.qmd
+      - vis.qmd
+      - pca.qmd
+      - umap.qmd
+      - clustering.qmd
+  page-footer:
+    right: |
+      [![](https://i.creativecommons.org/l/by-sa/4.0/80x15.png)](http://creativecommons.org/licenses/by-sa/4.0/) <br/> Esta obra está bajo una [Licencia Creative Commons Atribución-CompartirIgual 4.0 Internacional](http://creativecommons.org/licenses/by-sa/4.0/)
+
+
+author: 
+  - name: "Eric S. Téllez"
+    url: https://sadit.github.io
+    affiliation: INFOTEC Centro de Investigación e Innovación en Tecnologías de la Información y Comunicación
+
+
+format:
+  html:
+    theme: cosmo
+    #css: styles.css
+    toc: true
+    code-tools: true
+    echo: true
+  pdf:
+    documentclass: scrbook
+    echo: true
+    toc: true
+    colorlinks: true
+    papersize: letter
+
+title-block-banner: true
+highlight-style: pygments
+jupyter: python3 
+execute:
+  freeze: auto
+
+bibliography: refs.bib
+

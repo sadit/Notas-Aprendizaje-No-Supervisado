@@ -1,0 +1,31 @@
+---
+title: "Aprendizaje no supervisado y visualización"
+format: html
+jupyter: python3
+
+---
+
+En el estudio de la Inteligencia Artificial (IA), el **aprendizaje no supervisado** y la **visualización de datos** son pilares fundamentales. El aprendizaje no supervisado es crucial porque le permite a la IA **descubrir patrones y estructuras ocultas** en datos que no han sido previamente etiquetados o categorizados. 
+
+A diferencia del aprendizaje supervisado, que necesita ejemplos de entrada con sus respuestas correctas, el aprendizaje no supervisado trabaja con datos **crudos**, lo cual es una gran ventaja ya que la mayoría de los datos disponibles en el mundo real no están etiquetados.
+
+## Manos a la obra
+
+Para esta Unidad se requieren algunos paquetes de Python, 
+Para esta Unidad se necesita una instalación de Python 3, en particular se probó en la versión 3.11. Para las notas se utilizó `miniconda`, pero si te es posible, utiliza la versión completa _Anaconda_ <https://www.anaconda.com/>. Se utilizan varios paquetes, los cuales se pueden instalar como sigue:
+
+```bash
+pip install pandas matplotlib seaborn scikit-learn umap-learn nndescent hdbscan
+```
+
+Para esto se necesita acceso a internet. También se necesitan algunas bases de datos pequeñas que se pueden bajar automáticamente de internet.
+
+También se recomienda usar Visual Studio Code <https://code.visualstudio.com/> para trabajar con el código. Se puede usar en diferentes plataformas, tiene plugins para `jupyter` y para `quarto`, así como también puede ejecutar código directamente de archivos.
+ 
+
+Si se prefiere, se puede utilizar `jupyter` o `quarto` sin vscode.
+
+En todo caso será necesario instalar `jupyter` y/o `quarto`; se recomienda seguir las instrucciones de los sitios oficiales
+
+- <https://jupyter.org/install>
+- <https://quarto.org/>

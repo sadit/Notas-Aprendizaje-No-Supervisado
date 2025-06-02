@@ -1,0 +1,140 @@
+---
+title: "Reducción de dimensión no lineal -- UMAP"
+format: html
+jupyter: python3
+
+---
+
+A diferencia de **PCA (Análisis de Componentes Principales)**, las técnicas de **reducción de dimensionalidad no lineal** pueden capturar relaciones más complejas entre los datos; se suele involucrar una función de distancia o kernel para describir la relación entre dos elementos de una base de datos. Esta función de distancia captura la estructura del espacio mediante una matriz de afinidad o una gráfica de vecinos cercanos, que se cálcula en alta dimensión y se _replica_ en baja baja dimensión.
+Ver @lee2007nonlinear para un tratado más extenso en el tema.
+
+## Uniform Manifold Approximation and Projection (UMAP)
+
+UMAP es un algoritmo de reducción de dimensionalidad no lineal que se distingue a su eficiencia computacional, escalabilidad y la capacidad de preservar simultáneamente la estructura local y global de los datos. A diferencia de métodos previos como t-SNE, que prioriza fuertemente la estructura local, UMAP se fundamenta en un marco teórico más riguroso derivado de la **geometría Riemanniana** y la **topología algebraica**.
+
+El algoritmo de UMAP se puede desglosar en dos fases principales:
+
+1.  **Construcción de una representación topológica fuzzy de alta dimensión:**
+    * Se presume que los datos están muestreados a partir de una **variedad (manifold) de Riemann** de baja dimensionalidad incrustada en un espacio euclidiano de alta dimensionalidad. Se postula que la distribución de los datos en esta variedad es aproximadamente uniforme y que la métrica Riemanniana es localmente constante o puede ser aproximada como tal.
+    * **Grafo de k-vecinos:** Para cada punto $x_i$ en el espacio de alta dimensión, se identifican sus $k$ vecinos más cercanos ($k$ es el parámetro `n_neighbors`).
+    * **Complejo simplicial fuzzy:** A partir de estos vecinos, UMAP construye un **complejo simplicial fuzzy** (un grafo ponderado difuso). En este grafo, los nodos son los puntos de datos y las aristas representan las conectividades. La fuerza de la conexión (peso de la arista) entre dos puntos $x_i$ y $x_j$ se modela como una **probabilidad de conectividad** $p_{ij}$. 
+
+2.  **Optimización de la incrustación de baja dimensión:**
+    * **Construcción de un grafo de baja dimensión:** Se inicializa aleatoriamente una incrustación de los puntos en el espacio de baja dimensión (típicamente 2D o 3D). Sobre esta incrustación, se construye un grafo con conectividades $q_{ij}$ que idealmente reflejan las $p_{ij}$ del espacio de alta dimensión. 
+    * **Función de costo:** UMAP minimiza una **función de costo de entropía cruzada binaria** (o una función de pérdida equivalente) entre las distribuciones de probabilidad de alta y baja dimensión. La función de pérdida penaliza las discordancias:
+        * Si dos puntos están conectados en alta dimensión ($p_{ij}$ es alta) pero no en baja ($q_{ij}$ es baja), hay una penalización fuerte. (Fuerzas atractivas)
+        * Si dos puntos no están conectados en alta dimensión ($p_{ij}$ es baja) pero sí lo están en baja ($q_{ij}$ es alta), la penalización es menor. (Fuerzas repulsivas, gestionadas eficientemente por un muestreo negativo).
+    * **Optimización:** La minimización se realiza mediante **descenso de gradiente estocástico (SGD)**. Los puntos en el espacio de baja dimensión se ajustan iterativamente para que las conectividades $q_{ij}$ se acerquen lo más posible a las $p_{ij}$.
+
+## Ejemplo
+
+
+```{python}
+from IPython.display import Markdown, display
+import matplotlib.pyplot as plt
+from sklearn import datasets
+import seaborn as sns
+import pandas as pd
+import numpy as np
+import umap 
+
+```
+
+estaremos usando la base de datos digits de digits escritos a mano más alta, en particular de imágenes en escala de grises de $8 \times 8$, representadas como vectores de 64 dimensiones. 
+
+```{python}
+digits = datasets.load_digits()
+print(digits.DESCR)
+```
+
+El modelo UMAP se aprende y se usa para transformar la base de datos original de 784 dimensiones a solo dos. Las imagenes se ven como sigue:
+
+```{python}
+_, axes = plt.subplots(nrows=1, ncols=10, figsize=(10, 3))
+
+for ax, image, label in zip(axes, digits.images, digits.target):
+    ax.set_axis_off()
+    ax.imshow(image, cmap=plt.cm.gray_r, interpolation="nearest")
+    ax.set_title("label: %i" % label)
+
+plt.show()
+#plt.matshow(digits.images[0])
+```
+
+Definición del modelo UMAP y transformación:
+```{python}
+emb = umap.UMAP(metric="euclidean", n_neighbors=15, n_components=2, n_jobs=16).fit_transform(digits.data)
+```
+
+Graficamos con `seaborn`:
+
+```{python}
+df = pd.DataFrame(data=emb, columns=["x", "y"])
+df["target"] = digits.target
+sns.scatterplot(x="x", y="y",
+    hue="target", palette='viridis',
+    alpha=0.7, data=df)
+```
+
+
+### ¿Cómo se vería con PCA 2D?
+Esta pregunta se responderá comparando de manera práctica
+
+```{python}
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+scaler = StandardScaler()
+scaled_features = scaler.fit_transform(digits.data)
+#scaled_features = digits.data
+model = PCA(n_components=2)
+principal_components = model.fit_transform(scaled_features)
+pca_df = pd.DataFrame(data=principal_components, columns=['PC1', 'PC2'])
+pca_df['target'] = digits['target']
+sns.scatterplot(
+    data=pca_df,
+    x='PC1',
+    y='PC2',
+    hue='target', # Colorea los puntos según si sobrevivieron o no
+    palette='viridis', # Esquema de colores
+    alpha=0.7 # Transparencia
+)
+```
+
+### Parametros: número de vecinos
+```{python}
+for nn in [3, 10, 15, 30, 50, 100, 300, 1000, 1797]:
+    emb = umap.UMAP(metric="euclidean", n_neighbors=nn, n_components=2, n_jobs=16).fit_transform(digits.data)
+    display(Markdown(f"## n_neighbors={nn}"))
+    df = pd.DataFrame(data=emb, columns=["x", "y"])
+    df["target"] = digits.target
+    sns.scatterplot(x="x", y="y",
+        hue="target", palette='viridis',
+        alpha=0.7, data=df)
+    plt.title(f"n_neighbors={nn}")
+    plt.show()
+```
+
+Ahora veremos como actua el parámetro `min_dist`
+
+```{python}
+for min_dist in [0.01, 0.03, 0.1, 0.3, 1.0]:
+    nn = 15
+    emb = umap.UMAP(metric="euclidean", n_neighbors=nn, n_components=2, n_jobs=16, min_dist=min_dist).fit_transform(digits.data)
+    display(Markdown(f"## n_neighbors={nn}, min_dist={min_dist}"))
+    df = pd.DataFrame(data=emb, columns=["x", "y"])
+    df["target"] = digits.target
+    sns.scatterplot(x="x", y="y",
+        hue="target", palette='viridis',
+        alpha=0.7, data=df)
+    plt.title(f"n_neighbors={nn}")
+    plt.show()
+```
+
+## Criterios prácticos para elegir entre PCA y UMAP
+
+- Estructura
+- Eficiencia
+- Reproducibilidad
+
+
